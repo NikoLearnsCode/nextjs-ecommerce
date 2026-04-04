@@ -1,0 +1,20 @@
+import {Metadata} from 'next';
+import Newsletter from '@/components/shared/Newsletter';
+import Homepage from '@/components/Homepage';
+import {getMainCategoriesForHomepage} from '@/actions/navigation.actions';
+
+export const metadata: Metadata = {
+  title: 'Next.js Demo',
+  description: 'Next.js Demo',
+};
+
+export default async function Page() {
+  const result = await getMainCategoriesForHomepage();
+
+  return (
+    <div className='w-full h-full'>
+      <Homepage mainCategories={result} />
+      <Newsletter />
+    </div>
+  );
+}
