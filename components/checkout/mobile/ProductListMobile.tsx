@@ -9,6 +9,7 @@ import ProductModal from '../shared/ProductModal';
 export default function ProductListMobile() {
   const {cartItems, itemCount, totalPrice} = useCart();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const productModalId = 'checkout-product-modal-mobile';
 
   const closeModal = () => {
     setIsModalOpen(false);
@@ -24,8 +25,11 @@ export default function ProductListMobile() {
         <span className='flex justify-between items-center px-3'>
           <h2 className='font-semibold text-sm'>YOUR CART ({itemCount})</h2>
           <button
+            type='button'
             className='text-sm cursor-pointer font-medium underline underline-offset-2'
             onClick={openModal}
+            command='show-modal'
+            commandfor={productModalId}
           >
             View
           </button>
@@ -57,7 +61,11 @@ export default function ProductListMobile() {
         </div>
       </div>
 
-      <ProductModal closeMenu={closeModal} isOpen={isModalOpen} />
+      <ProductModal
+        dialogId={productModalId}
+        closeMenu={closeModal}
+        isOpen={isModalOpen}
+      />
     </>
   );
 }

@@ -34,6 +34,12 @@ export function ModalDialog({
       aria-describedby={ariaDescribedby}
       closedby='any'
       onClose={onClose}
+      // Fix for Safari aka New IE
+      onClick={(event) => {
+        if (event.target === event.currentTarget) {
+          (event.currentTarget as HTMLDialogElement).close();
+        }
+      }}
     >
       {children}
     </dialog>

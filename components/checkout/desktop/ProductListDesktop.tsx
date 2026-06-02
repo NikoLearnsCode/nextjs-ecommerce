@@ -8,6 +8,7 @@ import ProductModal from '../shared/ProductModal';
 export default function ProductListDesktop() {
   const {cartItems, itemCount, removeItem, removingItems} = useCart();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const productModalId = 'checkout-product-modal-desktop';
 
   const handleRemoveItem = async (itemId: string) => {
     try {
@@ -31,8 +32,11 @@ export default function ProductListDesktop() {
         <span className='flex justify-between items-center px-2'>
           <h2 className='font-medium text-sm'>YOUR CART ({itemCount})</h2>
           <button
+            type='button'
             className='text-sm cursor-pointer font-semibold underline underline-offset-2'
             onClick={openModal}
+            command='show-modal'
+            commandfor={productModalId}
           >
             View
           </button>
@@ -83,7 +87,11 @@ export default function ProductListDesktop() {
         </div>
       </div>
 
-      <ProductModal closeMenu={closeModal} isOpen={isModalOpen} />
+      <ProductModal
+        dialogId={productModalId}
+        closeMenu={closeModal}
+        isOpen={isModalOpen}
+      />
     </>
   );
 }
