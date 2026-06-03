@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 @plugin 'tailwindcss-animate';
 @import './modal.css';
+@import './panel.css';
 
 @custom-variant pointer-fine (@media (hover: hover) and (pointer: fine));
 
@@ -41,7 +42,7 @@ textarea:-webkit-autofill:active {
 }
 
 :root {
-  --header-height: 56px;
+  --header-height: 3.5rem;
   --primary: #171717;
   --primary-foreground: #fafafa;
   --secondary: #f5f5f5;

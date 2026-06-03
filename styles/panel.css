@@ -1,0 +1,49 @@
+@layer components {
+  .header-popover-panel[popover] {
+    margin: 0;
+    inset: unset;
+    position: absolute;
+    overflow: visible;
+  }
+
+  .header-popover-panel {
+    transition:
+      opacity 0.1s ease-out,
+      transform 0.1s ease-out,
+      display 0.1s allow-discrete,
+      overlay 0.1s allow-discrete;
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  .header-popover-panel:popover-open {
+    opacity: 1;
+    transform: translateY(0);
+    @starting-style {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+  }
+}
+
+/* Anchor positioning: popover follows fixed header trigger on scroll */
+#header-cart-trigger {
+  anchor-name: --header-cart-trigger;
+}
+
+#header-user-trigger {
+  anchor-name: --header-user-trigger;
+}
+
+@supports (anchor-name: --header-cart-trigger) {
+  /* Keep panel Tailwind top/right; anchor is the containing block so the popover follows the fixed trigger on scroll. */
+  #header-cart-popover[popover] {
+    position: fixed;
+    position-anchor: --header-cart-trigger;
+  }
+
+  #header-user-popover[popover] {
+    position: fixed;
+    position-anchor: --header-user-trigger;
+  }
+}

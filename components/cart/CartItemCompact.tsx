@@ -22,18 +22,20 @@ export default function CartItemCompact({
 }: CartItemCompactProps) {
   return (
     <div
-      className={`flex items-center px-3.5 lg:px-4 not-last:border-b  border-gray-100 py-3 justify-between gap-4 ${isRemoving ? 'opacity-50' : ''}`}
+      className={`flex items-center px-3.5 lg:px-4 not-last:border-b border-gray-100 py-3 justify-between gap-4 ${isRemoving ? 'opacity-50' : ''}`}
     >
       <div className='relative h-[4.5rem] w-14 shrink-0 overflow-hidden bg-gray-100 md:h-[5rem] md:w-16 mr-3'>
         <Link
           href={`/${item.slug}`}
           onClick={onNavigate}
-          className='relative block h-full w-full outline-none focus-visible:shadow-[0_0_0_2px_var(--ring)]'
+          tabIndex={-1}
+          aria-hidden='true'
+          className='relative block h-full w-full outline-none'
         >
           {item.images[0] ? (
             <Image
               src={item.images[0]}
-              alt={item.name}
+              alt=''
               fill
               sizes='(min-width: 768px) 64px, 56px'
               priority={imagePriority}
@@ -48,11 +50,20 @@ export default function CartItemCompact({
       </div>
 
       <div className='flex-1 min-w-0 text-[11px] md:text-xs'>
-        <h3 className=' font-medium truncate'>{item.name}</h3>
+        <h3 className='font-medium'>
+          <Link
+            href={`/${item.slug}`}
+            onClick={onNavigate}
+            className='hover:underline outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-[2px] truncate'
+          >
+            {item.name}
+          </Link>
+        </h3>
 
-        <p>Size: {item.size}</p>
-        <p>Color: {item.color}</p>
-        <div className='flex justify-between items-center'>
+        <p className='text-gray-500'>Size: {item.size}</p>
+        <p className='text-gray-500'>Color: {item.color}</p>
+
+        <div className='flex justify-between items-center mt-1'>
           <span>
             {item.quantity} x {formatPrice(item.price)}
           </span>

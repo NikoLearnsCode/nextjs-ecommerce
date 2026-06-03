@@ -1,14 +1,11 @@
 'use client';
 
 import {useCart} from '@/context/CartProvider';
-import {FocusHeading} from '@/components/shared/FocusHeading';
-import CartItems from '../../cart/CartItems';
-import CartSummary from '../../cart/CartSummary';
-import EmptyCart from '../../cart/EmptyCart';
-import SpinningLogo from '../../shared/ui/SpinningLogo';
-import {MotionCloseX} from '../../shared/AnimatedSidebar';
-
-export const CART_DROPDOWN_TITLE_ID = 'cart-dropdown-title';
+import CartItems from '@/components/cart/CartItems';
+import CartSummary from '@/components/cart/CartSummary';
+import EmptyCart from '@/components/cart/EmptyCart';
+import SpinningLogo from '@/components/shared/ui/SpinningLogo';
+import {MotionCloseX} from '@/components/shared/AnimatedSidebar';
 
 type CartDropdownContentProps = {
   onClose: () => void;
@@ -20,12 +17,11 @@ export function CartDropdownContent({onClose}: CartDropdownContentProps) {
   return (
     <>
       <div className='flex justify-between items-center p-3 border-b border-gray-100'>
-        <FocusHeading
-          id={CART_DROPDOWN_TITLE_ID}
+        <h2
           className='font-medium text-xs lg:text-sm'
         >
           Your cart ({itemCount})
-        </FocusHeading>
+        </h2>
         <div className='absolute right-1'>
           <MotionCloseX
             className='px-3.5 py-1'

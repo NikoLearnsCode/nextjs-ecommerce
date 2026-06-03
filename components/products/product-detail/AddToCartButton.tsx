@@ -5,6 +5,10 @@ import {Button} from '@/components/shared/ui/button';
 import {Product} from '@/lib/types/db-types';
 import {AddToCartItem} from '@/lib/types/db-types';
 import {useCart} from '@/context/CartProvider';
+import {
+  CART_HEADER_POPOVER_ID,
+  showHeaderPopover,
+} from '@/components/shared/HeaderPopoverPanel';
 
 type AddToCartButtonProps = {
   product: Product;
@@ -24,7 +28,7 @@ export default function AddToCartButton({
   onSizeMissing,
 }: AddToCartButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const {addItem, openCart} = useCart();
+  const {addItem} = useCart();
 
   const handleAddToCart = async () => {
     if (!selectedSize) {
@@ -43,7 +47,7 @@ export default function AddToCartButton({
       await addItem(itemToAdd);
 
       onAddSuccess?.();
-      openCart();
+      showHeaderPopover(CART_HEADER_POPOVER_ID);
     } catch (error) {
       console.error('Error adding to cart:', error);
     } finally {

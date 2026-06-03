@@ -5,7 +5,8 @@ import {
   useHeaderSearchUi,
 } from '@/context/HeaderSearchUiProvider';
 import SearchBar from './search/SearchBar';
-import UserButton from './user/UserButtonDropdown';
+import UserButton from './user/UserButton';
+import UserDropdown from './user/UserDropdown';
 import HeaderFavoritesButton from './HeaderFavoritesButton';
 import HeaderCartDropdown from './cart/CartDropdown';
 import SearchDropdown from './search/SearchDropdown';
@@ -37,7 +38,8 @@ function HeaderInner({navLinks}: {navLinks: NavLink[]}) {
           }`}
         >
           <SearchBar />
-          <UserButton />
+            <UserButton />
+            <UserDropdown />
           <HeaderFavoritesButton />
           <HeaderCartDropdown />
         </div>

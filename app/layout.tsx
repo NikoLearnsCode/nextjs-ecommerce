@@ -48,7 +48,7 @@ export default async function RootLayout({
   const session = await auth();
 
   return (
-    <html lang='sv' suppressHydrationWarning>
+    <html lang='en' suppressHydrationWarning>
       <body className={`${arimo.variable} font-arimo`}>
         <QueryProvider>
           <AuthProvider session={session}>
