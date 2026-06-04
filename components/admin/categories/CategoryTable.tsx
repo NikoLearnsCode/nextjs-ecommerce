@@ -11,6 +11,7 @@ import {
   getAllCategoryIdsRecursive,
 } from '../utils/admin.table-helpers';
 import {createCategoryColumns} from '../utils/table-columns';
+import {ADMIN_FORM_DIALOG_ID} from '../adminForm.constants';
 
 type CategoryManagerProps = {
   categories: CategoryWithChildren[];
@@ -68,6 +69,8 @@ export default function CategoryManager({categories}: CategoryManagerProps) {
     {
       label: <FiEdit size={16} className='text-gray-600 hover:text-gray-900' />,
       key: 'edit',
+      command: 'show-modal',
+      commandfor: ADMIN_FORM_DIALOG_ID,
       isDisabled: (category: FlattenedCategory) =>
         category.type === 'COLLECTION',
       onClick: (category: FlattenedCategory) => {
