@@ -16,6 +16,9 @@ interface ReusableTableProps<T extends {id: string | number}> {
     onClick: (item: T, event?: React.MouseEvent) => void;
     key: string;
     isDisabled?: (item: T) => boolean;
+    /** Optional Invoker Commands API attrs, e.g. open the form <dialog>. */
+    command?: string;
+    commandfor?: string;
   }[];
   getRowClassName?: (item: T) => string;
 }
@@ -76,6 +79,8 @@ export default function ReusableTable<T extends {id: string | number}>({
                         <button
                           key={action.key}
                           onClick={(event) => action.onClick(item, event)}
+                          command={action.command}
+                          commandfor={action.commandfor}
                           disabled={isDisabled}
                           className={twMerge(
                             'px-3 text-xs uppercase font-semibold',

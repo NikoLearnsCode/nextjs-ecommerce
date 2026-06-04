@@ -3,6 +3,7 @@
 import {Button} from '@/components/shared/ui/button';
 import {useAdmin} from '@/context/AdminProvider';
 import {ArrowRight} from 'lucide-react';
+import {ADMIN_FORM_DIALOG_ID} from '@/components/admin/adminForm.constants';
 
 type AdminHeaderProps = {
   title: string;
@@ -36,6 +37,8 @@ export default function AdminHeader({
         <Button
           variant='link'
           className='gap-0 m-0 py-0  h-7   text-gray-900 focus:no-underline uppercase font-bold  decoration-1   underline underline-offset-3 shadow-none text-xs group  '
+          command='show-modal'
+          commandfor={ADMIN_FORM_DIALOG_ID}
           onClick={handleClick}
         >
           {/* <span className='text-xl  font-medium mb-[5px]'>n</span>ew{' '} */}

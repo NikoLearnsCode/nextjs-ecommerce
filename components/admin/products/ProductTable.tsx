@@ -7,6 +7,7 @@ import Pagination from '../shared/Pagination';
 import {FiEdit, FiTrash} from 'react-icons/fi';
 import {useAdmin} from '@/context/AdminProvider';
 import {productColumns} from '../utils/table-columns';
+import {ADMIN_FORM_DIALOG_ID} from '../adminForm.constants';
 
 type ProductManagerProps = {
   products: Product[];
@@ -44,6 +45,8 @@ export default function ProductManager({
     {
       label: <FiEdit size={14} className='text-gray-600 hover:text-gray-900' />,
       key: 'edit',
+      command: 'show-modal',
+      commandfor: ADMIN_FORM_DIALOG_ID,
       onClick: (product: Product) => {
         openSidebar('product', product);
       },
