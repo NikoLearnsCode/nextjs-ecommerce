@@ -1,6 +1,10 @@
 'use client';
 
-import * as React from 'react';
+import type {
+  AnchorHTMLAttributes,
+  MouseEventHandler,
+  ReactNode,
+} from 'react';
 import NextLink from 'next/link';
 import {cva, type VariantProps} from 'class-variance-authority';
 import {cn} from '@/styles/style.utils';
@@ -51,11 +55,11 @@ const linkVariants = cva(
 );
 
 export interface LinkProps
-  extends React.AnchorHTMLAttributes<HTMLAnchorElement>,
+  extends AnchorHTMLAttributes<HTMLAnchorElement>,
     VariantProps<typeof linkVariants> {
   href: string;
-  children: React.ReactNode;
-  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
+  children: ReactNode;
+  onClick?: MouseEventHandler<HTMLAnchorElement>;
   className?: string;
   prefetch?: boolean;
 }

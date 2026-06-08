@@ -70,12 +70,12 @@ export default function OrderConfirmation({
                   />
                 </div>
 
-                <div className=' text-xs pt-0.5  px-4 justify-start flex flex-col items-start'>
+                <div className=' text-xs py-1 px-1.5 justify-start flex flex-col items-start'>
                   <h2 className=' font-medium'>{item.name}</h2>
                   <p className=' text-gray-700 '>
                     {formatPrice(item.price)} x {item.quantity}{' '}
                   </p>
-                  <div className='  flex gap-2    text-gray-700 mt-1'>
+                  <div className='  flex gap-2 text-gray-700'>
                     <div>{item.size},</div>
                     <div>{item.color}</div>
                   </div>

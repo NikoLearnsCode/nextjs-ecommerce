@@ -1,6 +1,11 @@
 'use client';
 
-import * as React from 'react';
+import {
+  useId,
+  type InputHTMLAttributes,
+  type Ref,
+  type TextareaHTMLAttributes,
+} from 'react';
 import {cn} from '@/styles/style.utils';
 
 type FowardableElement = HTMLInputElement | HTMLTextAreaElement;
@@ -11,22 +16,23 @@ interface FloatingLabelBaseProps {
   hasError?: boolean;
   errorMessage?: string;
   value?: string;
+  ref?: Ref<FowardableElement>;
 }
 
 type FloatingLabelProps = FloatingLabelBaseProps &
   (
-    | ({as?: 'input'} & React.InputHTMLAttributes<HTMLInputElement>)
-    | ({as: 'textarea'} & React.TextareaHTMLAttributes<HTMLTextAreaElement>)
+    | ({as?: 'input'} & Omit<InputHTMLAttributes<HTMLInputElement>, 'ref'>)
+    | ({as: 'textarea'} & Omit<
+        TextareaHTMLAttributes<HTMLTextAreaElement>,
+        'ref'
+      >)
   );
 
-const FloatingLabelField = React.forwardRef<
-  FowardableElement,
-  FloatingLabelProps
->((allProps, ref) => {
-  const uniqueSuffix = React.useId();
+function FloatingLabelField(allProps: FloatingLabelProps) {
+  const uniqueSuffix = useId();
 
   if (allProps.as === 'textarea') {
-    const {id, label, hasError, errorMessage, className, ...restProps} =
+    const {id, label, hasError, errorMessage, className, ref, ...restProps} =
       allProps;
     const resolvedId = `${id}${uniqueSuffix}`;
     const errorId = `${resolvedId}-error`;
@@ -38,7 +44,7 @@ const FloatingLabelField = React.forwardRef<
           id={resolvedId}
           placeholder=' '
           {...restProps}
-          ref={ref as React.Ref<HTMLTextAreaElement>}
+          ref={ref as Ref<HTMLTextAreaElement>}
           aria-invalid={hasError || undefined}
           aria-describedby={showError ? errorId : undefined}
           className={cn(
@@ -73,7 +79,8 @@ const FloatingLabelField = React.forwardRef<
     );
   }
 
-  const {id, label, hasError, errorMessage, className, ...restProps} = allProps;
+  const {id, label, hasError, errorMessage, className, ref, ...restProps} =
+    allProps;
   const resolvedId = `${id}${uniqueSuffix}`;
   const errorId = `${resolvedId}-error`;
   const showError = hasError && errorMessage;
@@ -84,7 +91,7 @@ const FloatingLabelField = React.forwardRef<
         id={resolvedId}
         placeholder=' '
         {...restProps}
-        ref={ref as React.Ref<HTMLInputElement>}
+        ref={ref as Ref<HTMLInputElement>}
         aria-invalid={hasError || undefined}
         aria-describedby={showError ? errorId : undefined}
         className={cn(
@@ -116,8 +123,6 @@ const FloatingLabelField = React.forwardRef<
       )}
     </div>
   );
-});
-
-FloatingLabelField.displayName = 'FloatingLabelField';
+}
 
 export {FloatingLabelField as FloatingLabelInput};

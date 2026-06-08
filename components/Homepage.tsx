@@ -33,7 +33,7 @@ export default function Homepage({
   return (
     <div className='relative pb-6'>
       <div className='relative min-h-[calc(100vh-56px)]'>
-        {/* Mobile bilder */}
+        {/* Mobile images */}
         <div className='sm:hidden absolute w-full h-full'>
           {mainCategories.map((category) => {
             if (!category.mobileImage) return null;
@@ -58,7 +58,7 @@ export default function Homepage({
           })}
         </div>
 
-        {/* Desktop bilder */}
+        {/* Desktop images */}
         <div className='hidden sm:block w-full h-full absolute'>
           {mainCategories.map((category) => {
             if (!category.desktopImage) return null;

@@ -1,5 +1,6 @@
 'use client';
-import * as React from 'react';
+
+import type {ComponentProps} from 'react';
 import {cva, type VariantProps} from 'class-variance-authority';
 
 import {cn} from '@/styles/style.utils';
@@ -45,7 +46,7 @@ function Button({
   variant,
   size,
   ...props
-}: React.ComponentProps<'button'> & VariantProps<typeof buttonVariants>) {
+}: ComponentProps<'button'> & VariantProps<typeof buttonVariants>) {
   return (
     <button
       data-slot='button'
