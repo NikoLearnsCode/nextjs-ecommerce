@@ -13,26 +13,31 @@ export const deliverySchema = z.object({
 
 export type DeliveryFormData = z.infer<typeof deliverySchema>;
 
-export const paymentSchema = z.object({
-  paymentMethod: z.string(),
-  cardNumber: z
-    .string()
-    .min(16, 'Card number must be at least 16 digits')
-    .optional(),
-  expiryDate: z
-    .string()
-    .min(5, 'Expiry must be in MM/YY format')
-    .optional(),
-  cvv: z.string().min(3, 'CVV must be 3 digits').optional(),
-  swishNumber: z
-    .string()
-    .min(10, 'Swish number must be at least 10 digits')
-    .optional(),
-  klarnaNumber: z
-    .string()
-    .min(10, 'Klarna number must be at least 10 digits')
-    .optional(),
-  campaignCode: z.string().optional(),
-});
+export const paymentSchema = z
+  .object({
+    paymentMethod: z.enum(['card', 'swish', 'klarna']),
+    cardNumber: z.string().optional(),
+    expiryDate: z.string().optional(),
+    cvv: z.string().optional(),
+    swishNumber: z.string().optional(),
+    klarnaNumber: z.string().optional(),
+    campaignCode: z.string().optional(),
+  })
+  //  Validate only the selected method's fields
+  .superRefine((data, ctx) => {
+    const fail = (path: string, message: string) =>
+      ctx.addIssue({code: z.ZodIssueCode.custom, path: [path], message});
+
+    if (data.paymentMethod === 'card') {
+      if ((data.cardNumber?.length ?? 0) < 16)
+        fail('cardNumber', 'Card number must be at least 16 digits');
+      if ((data.expiryDate?.length ?? 0) < 5)
+        fail('expiryDate', 'Expiry must be in MM/YY format');
+      if ((data.cvv?.length ?? 0) < 3) fail('cvv', 'CVV must be 3 digits');
+    } else if (data.paymentMethod === 'swish') {
+      if ((data.swishNumber?.length ?? 0) < 10)
+        fail('swishNumber', 'Swish number must be at least 10 digits');
+    }
+  });
 
 export type PaymentFormData = z.infer<typeof paymentSchema>;

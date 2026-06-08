@@ -1,7 +1,7 @@
 import AdminProvider from '@/context/AdminProvider';
 import {getCategoriesWithChildren} from '@/actions/admin/admin.categories.actions';
 import AdminUIWrapper from '@/components/admin/AdminUIWrapper';
-import {auth} from '@/lib/auth';
+import {isAdmin} from '@/lib/admin-guard';
 import {redirect} from 'next/navigation';
 
 export default async function AdminLayout({
@@ -9,8 +9,7 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
-  if (session?.user.role !== 1) {
+  if (!(await isAdmin())) {
     return redirect('/');
   }
 

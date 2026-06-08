@@ -155,6 +155,7 @@ export default function FilterPanel({
                 <div className='grid grid-cols-1 font-medium gap-4 py-1'>
                   <RadioOption
                     id='sort-price-asc'
+                    name='sort'
                     label='Price: Low to high'
                     key='sort-price-asc'
                     checked={sortOrder === 'price_asc'}
@@ -162,6 +163,7 @@ export default function FilterPanel({
                   />
                   <RadioOption
                     id='sort-price-desc'
+                    name='sort'
                     label='Price: High to low'
                     key='sort-price-desc'
                     checked={sortOrder === 'price_desc'}
@@ -169,6 +171,7 @@ export default function FilterPanel({
                   />
                   <RadioOption
                     id='sort-name-asc'
+                    name='sort'
                     label='Name: A–Z'
                     key='sort-name-asc'
                     checked={sortOrder === 'name_asc'}

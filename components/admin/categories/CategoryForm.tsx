@@ -297,9 +297,8 @@ export default function CategoryForm({mode, initialData}: CategoryFormProps) {
           errorMessage={errors.displayOrder?.message}
         />
         <CheckboxOption
-          svgClassName='h-5 w-5'
           labelClassName=' font-medium '
-          className='ml-1 w-7 h-6'
+          className='ml-1 w-7 h-6 checked:bg-[length:1.25rem_1.25rem]'
           {...register('isActive')}
           id='category-is-active'
           label={watch('isActive') ? 'Active' : 'Inactive'}

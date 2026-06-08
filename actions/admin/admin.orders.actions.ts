@@ -1,11 +1,10 @@
 import {db} from '@/drizzle';
 import {or, sql} from 'drizzle-orm';
 import {ordersTable} from '@/drizzle/db/schema';
-import {auth} from '@/lib/auth';
+import {isAdmin} from '@/lib/admin-guard';
 
 export async function getAllOrders(searchTerm?: string) {
-  const session = await auth();
-  if (!session?.user || session.user.role !== 1) {
+  if (!(await isAdmin())) {
     throw new Error('Unauthorized. Admin access required.');
   }
 

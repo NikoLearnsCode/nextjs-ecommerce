@@ -25,53 +25,22 @@ const FloatingLabelField = React.forwardRef<
 >((allProps, ref) => {
   const uniqueSuffix = React.useId();
 
-  const [isFocused, setIsFocused] = React.useState(false);
-  const [hasValue, setHasValue] = React.useState(false);
-  const elementRef = React.useRef<FowardableElement | null>(null);
-
-  const combinedRef = React.useCallback(
-    (node: FowardableElement | null) => {
-      elementRef.current = node;
-      if (typeof ref === 'function') {
-        ref(node);
-      } else if (ref) {
-        ref.current = node;
-      }
-    },
-    [ref],
-  );
-
-  const checkElementValue = React.useCallback(() => {
-    if (elementRef.current) {
-      setHasValue(elementRef.current.value !== '');
-    }
-  }, []);
-
-  React.useEffect(() => {
-    checkElementValue();
-  }, [allProps.value, checkElementValue]);
-
   if (allProps.as === 'textarea') {
-    const {
-      id,
-      label,
-      hasError,
-      errorMessage,
-      className,
-      onFocus,
-      onBlur,
-      onChange,
-      ...restProps
-    } = allProps;
+    const {id, label, hasError, errorMessage, className, ...restProps} =
+      allProps;
     const resolvedId = `${id}${uniqueSuffix}`;
-    const isFloating = isFocused || hasValue;
+    const errorId = `${resolvedId}-error`;
+    const showError = hasError && errorMessage;
 
     return (
       <div className={cn('relative', className)}>
         <textarea
           id={resolvedId}
+          placeholder=' '
           {...restProps}
-          ref={combinedRef as React.Ref<HTMLTextAreaElement>}
+          ref={ref as React.Ref<HTMLTextAreaElement>}
+          aria-invalid={hasError || undefined}
+          aria-describedby={showError ? errorId : undefined}
           className={cn(
             'peer w-full border bg-transparent px-3 pt-6 pb-1 text-[15px]',
             ' outline-none transition-all duration-200',
@@ -81,58 +50,43 @@ const FloatingLabelField = React.forwardRef<
               ? 'border-destructive'
               : 'border-gray-400/70 hover:border-gray-500 focus:border-gray-500',
           )}
-          onFocus={(e) => {
-            setIsFocused(true);
-            onFocus?.(e);
-          }}
-          onBlur={(e) => {
-            setIsFocused(false);
-            checkElementValue();
-            onBlur?.(e);
-          }}
-          onChange={(e) => {
-            checkElementValue();
-            onChange?.(e);
-          }}
         />
         <label
           htmlFor={resolvedId}
           className={cn(
             'absolute left-3 w-[90%] py-1 bg-white pointer-events-none select-none transition-all text-gray-500 duration-200',
             hasError ? 'text-destructive' : 'peer-focus:text-black',
-            isFloating ? 'top-0.25 text-xs' : 'top-2 text-sm ',
+            'top-0.25 text-xs',
+            'peer-placeholder-shown:top-2 peer-placeholder-shown:text-sm',
+            'peer-focus:top-0.25 peer-focus:text-xs',
             'peer-disabled:opacity-50',
           )}
         >
           {label}
         </label>
-        {hasError && errorMessage && (
-          <p className='text-xs ml-1 text-destructive '>{errorMessage}</p>
+        {showError && (
+          <p id={errorId} role='alert' className='text-xs ml-1 text-destructive '>
+            {errorMessage}
+          </p>
         )}
       </div>
     );
   }
 
-  const {
-    id,
-    label,
-    hasError,
-    errorMessage,
-    className,
-    onFocus,
-    onBlur,
-    onChange,
-    ...restProps
-  } = allProps;
+  const {id, label, hasError, errorMessage, className, ...restProps} = allProps;
   const resolvedId = `${id}${uniqueSuffix}`;
-  const isFloating = isFocused || hasValue;
+  const errorId = `${resolvedId}-error`;
+  const showError = hasError && errorMessage;
 
   return (
     <div className={cn('relative', className)}>
       <input
         id={resolvedId}
+        placeholder=' '
         {...restProps}
-        ref={combinedRef as React.Ref<HTMLInputElement>}
+        ref={ref as React.Ref<HTMLInputElement>}
+        aria-invalid={hasError || undefined}
+        aria-describedby={showError ? errorId : undefined}
         className={cn(
           'peer w-full border bg-transparent px-4 pt-5 pb-1 text-[15px]',
           ' outline-none transition-all duration-200',
@@ -141,35 +95,24 @@ const FloatingLabelField = React.forwardRef<
             ? 'border-destructive '
             : 'border-gray-400/70 hover:border-gray-500 focus:border-gray-500',
         )}
-        onFocus={(e) => {
-          setIsFocused(true);
-          onFocus?.(e);
-        }}
-        onBlur={(e) => {
-          setIsFocused(false);
-          checkElementValue();
-          onBlur?.(e);
-        }}
-        onChange={(e) => {
-          checkElementValue();
-          onChange?.(e);
-        }}
       />
       <label
         htmlFor={resolvedId}
         className={cn(
           'absolute left-3 pointer-events-none select-none transition-all duration-200 bg-white px-1 text-gray-500',
           hasError ? 'text-destructive' : 'peer-focus:text-black',
-          isFloating
-            ? 'top-3 -translate-y-1/2 text-xs'
-            : 'top-6 -translate-y-1/2 text-sm ',
+          'top-3 -translate-y-1/2 text-xs',
+          'peer-placeholder-shown:top-6 peer-placeholder-shown:text-sm',
+          'peer-focus:top-3 peer-focus:text-xs',
           'peer-disabled:opacity-50 ',
         )}
       >
         {label}
       </label>
-      {hasError && errorMessage && (
-        <p className='text-xs ml-1 text-destructive mt-1 '>{errorMessage}</p>
+      {showError && (
+        <p id={errorId} role='alert' className='text-xs ml-1 text-destructive mt-1 '>
+          {errorMessage}
+        </p>
       )}
     </div>
   );

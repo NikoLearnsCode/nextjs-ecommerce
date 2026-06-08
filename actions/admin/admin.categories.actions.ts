@@ -14,14 +14,13 @@ import {
   CategoryFormData,
 } from '@/lib/validators/admin.category-validation';
 import {ActionResult} from '@/lib/types/query-types';
-import {auth} from '@/lib/auth';
+import {isAdmin} from '@/lib/admin-guard';
 import {isUploadedImage} from '@/utils/image-helpers';
 import {uploadCategoryImages} from './admin.image-upload.actions';
 import {Category} from '@/lib/types/category-types';
 
 export async function getCategoriesWithChildren() {
-  const session = await auth();
-  if (!session?.user || session.user.role !== 1) {
+  if (!(await isAdmin())) {
     throw new Error('Unauthorized. Admin access required.');
   }
 
@@ -35,8 +34,7 @@ export async function getCategoriesWithChildren() {
 export async function createCategoryWithImages(
   formData: FormData
 ): Promise<ActionResult> {
-  const session = await auth();
-  if (!session?.user || session.user.role !== 1) {
+  if (!(await isAdmin())) {
     return {success: false, error: 'Unauthorized. Admin access required.'};
   }
 
@@ -107,8 +105,7 @@ export async function updateCategoryWithImages(
   id: number,
   formData: FormData
 ): Promise<ActionResult> {
-  const session = await auth();
-  if (!session?.user || session.user.role !== 1) {
+  if (!(await isAdmin())) {
     return {success: false, error: 'Unauthorized. Admin access required.'};
   }
 
@@ -180,8 +177,7 @@ export async function updateCategoryWithImages(
 }
 
 export async function deleteCategory(id: number): Promise<ActionResult> {
-  const session = await auth();
-  if (!session?.user || session.user.role !== 1) {
+  if (!(await isAdmin())) {
     return {success: false, error: 'Unauthorized. Admin access required.'};
   }
 
@@ -322,8 +318,7 @@ async function handleImageUpdates(
 export async function cleanupUploadedImages(
   imageUrls: (string | undefined | null)[]
 ) {
-  const session = await auth();
-  if (!session?.user || session.user.role !== 1) {
+  if (!(await isAdmin())) {
     throw new Error('Unauthorized. Admin access required.');
   }
 

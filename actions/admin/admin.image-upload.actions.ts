@@ -1,6 +1,6 @@
 'use server';
 
-import {auth} from '@/lib/auth';
+import {isAdmin} from '@/lib/admin-guard';
 import path from 'path';
 import fs from 'fs/promises';
 import {randomUUID} from 'crypto';
@@ -148,8 +148,7 @@ export async function uploadCategoryImages(
   mobileImage: File | null,
   categorySlug: string
 ): Promise<{desktopImageUrl?: string; mobileImageUrl?: string}> {
-  const session = await auth();
-  if (!session?.user || session.user.role !== 1) {
+  if (!(await isAdmin())) {
     throw new Error('Unauthorized. Admin access required.');
   }
 
@@ -186,8 +185,7 @@ export async function uploadProductImages(
   gender: string,
   category: string
 ): Promise<string[]> {
-  const session = await auth();
-  if (!session?.user || session.user.role !== 1) {
+  if (!(await isAdmin())) {
     throw new Error('Unauthorized. Admin access required.');
   }
 

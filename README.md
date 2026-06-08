@@ -48,4 +48,4 @@ Prerequisites: Node.js, PostgreSQL, `npm i`.
    npm run dev
    ```
 
-_Optional:_ To enable OAuth login, add Google/GitHub client IDs and secrets to `.env`. For temporary unrestricted access to `/admin`, comment out the role check in `app/admin/layout.tsx`.
+_Optional:_ To enable OAuth login, add Google/GitHub client IDs and secrets to `.env`. For temporary unrestricted access to `/admin` (and admin server actions) without logging in or setting `role = 1`, set `ADMIN_DEV_BYPASS=true` in `.env`. It is ignored when `NODE_ENV=production`.

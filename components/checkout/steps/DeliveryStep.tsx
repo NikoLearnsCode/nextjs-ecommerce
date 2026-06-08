@@ -65,7 +65,6 @@ export default function DeliveryStep({onNext, initialData}: DeliveryStepProps) {
                 checked={selectedMethod === option.value}
                 {...form.register('deliveryMethod')}
               >
-                {/* children */}
                 <div
                   className={`flex text-[13px] md:text-sm flex-col justify-center items-center p-2 w-full border transition-colors duration-200 hover:border-gray-500 ${
                     selectedMethod === option.value
@@ -86,7 +85,7 @@ export default function DeliveryStep({onNext, initialData}: DeliveryStepProps) {
             ))}
           </div>
           {form.formState.errors.deliveryMethod && (
-            <span className='text-red-500 text-sm'>
+            <span role='alert' className='text-red-500 text-sm'>
               {form.formState.errors.deliveryMethod.message}
             </span>
           )}

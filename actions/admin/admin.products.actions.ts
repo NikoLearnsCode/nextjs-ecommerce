@@ -7,7 +7,7 @@ import {productApiSchema} from '@/lib/validators/admin.product-validation';
 import {productsTable} from '@/drizzle/db/schema';
 import {Product} from '@/lib/types/db-types';
 import {ActionResult} from '@/lib/types/query-types';
-import {auth} from '@/lib/auth';
+import {isAdmin} from '@/lib/admin-guard';
 import {revalidatePath} from 'next/cache';
 import {uploadProductImages} from './admin.image-upload.actions';
 
@@ -27,8 +27,7 @@ export async function getAllProducts(
   page: number = 1,
   itemsPerPage: number = 25,
 ): Promise<PaginatedProductsResult> {
-  const session = await auth();
-  if (!session?.user || session.user.role !== 1) {
+  if (!(await isAdmin())) {
     throw new Error('Unauthorized. Admin access required.');
   }
 
@@ -66,8 +65,7 @@ export async function getAllProducts(
 }
 
 export async function deleteProduct(id: string): Promise<ActionResult> {
-  const session = await auth();
-  if (!session?.user || session.user.role !== 1) {
+  if (!(await isAdmin())) {
     return {success: false, error: 'Unauthorized. Admin access required.'};
   }
 
@@ -97,8 +95,7 @@ export async function deleteProduct(id: string): Promise<ActionResult> {
 export async function createProductWithImages(
   formData: FormData,
 ): Promise<ActionResult> {
-  const session = await auth();
-  if (!session?.user || session.user.role !== 1) {
+  if (!(await isAdmin())) {
     return {success: false, error: 'Unauthorized. Admin access required.'};
   }
 
@@ -168,8 +165,7 @@ export async function updateProductWithImages(
   id: string,
   formData: FormData,
 ): Promise<ActionResult> {
-  const session = await auth();
-  if (!session?.user || session.user.role !== 1) {
+  if (!(await isAdmin())) {
     return {success: false, error: 'Unauthorized. Admin access required.'};
   }
 
