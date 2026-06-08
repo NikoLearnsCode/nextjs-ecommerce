@@ -11,6 +11,13 @@ export function showHeaderPopover(id: string) {
   document.getElementById(id)?.showPopover();
 }
 
+// Open via the declarative trigger, not showPopover(): iOS WebKit needs an invoker or it light-dismisses immediately.
+export function openHeaderPopover(triggerId: string, popoverId: string) {
+  const popover = document.getElementById(popoverId);
+  if (popover?.matches(':popover-open')) return;
+  document.getElementById(triggerId)?.click();
+}
+
 export function hideHeaderPopover(id: string) {
   document.getElementById(id)?.hidePopover();
 }
@@ -30,11 +37,18 @@ export const HeaderPopoverPanel = forwardRef<
   {id, children, className, tabIndex, 'aria-labelledby': ariaLabelledby},
   ref,
 ) {
+  const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      e.currentTarget.hidePopover();
+    }
+  };
+
   return (
     <div
       ref={ref}
       id={id}
       popover='auto'
+      onBlur={handleBlur}
       tabIndex={tabIndex}
       aria-labelledby={ariaLabelledby}
       className={`header-popover-panel outline-none ${className ?? ''}`}

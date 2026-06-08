@@ -7,7 +7,8 @@ import {AddToCartItem} from '@/lib/types/db-types';
 import {useCart} from '@/context/CartProvider';
 import {
   CART_HEADER_POPOVER_ID,
-  showHeaderPopover,
+  CART_HEADER_TRIGGER_ID,
+  openHeaderPopover,
 } from '@/components/shared/HeaderPopoverPanel';
 
 type AddToCartButtonProps = {
@@ -45,9 +46,8 @@ export default function AddToCartButton({
       };
 
       await addItem(itemToAdd);
-
       onAddSuccess?.();
-      showHeaderPopover(CART_HEADER_POPOVER_ID);
+      openHeaderPopover(CART_HEADER_TRIGGER_ID, CART_HEADER_POPOVER_ID);
     } catch (error) {
       console.error('Error adding to cart:', error);
     } finally {

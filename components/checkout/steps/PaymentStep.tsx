@@ -39,7 +39,7 @@ export default function PaymentStep({onNext, deliveryData}: PaymentStepProps) {
   const form = useForm<PaymentFormData>({
     resolver: zodResolver(paymentSchema),
     defaultValues: {
-      paymentMethod: 'card',
+      paymentMethod: undefined,
       cardNumber: '1234 5678 9012 3456',
       expiryDate: '01/25',
       cvv: '123',
@@ -237,7 +237,11 @@ export default function PaymentStep({onNext, deliveryData}: PaymentStepProps) {
           className='px-4 py-3 mt-0 h-16 cursor-pointer bg-black font-bold text-xs uppercase text-white w-full'
           disabled={isLoading || !selectedMethod}
         >
-          {isLoading ? 'Processing...' : `Submit payment`}
+          {isLoading
+            ? 'Processing...'
+            : selectedMethod
+              ? 'Submit payment'
+              : 'Select payment method'}
         </Button>
       </form>
     </div>

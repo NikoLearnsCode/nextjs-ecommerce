@@ -9,6 +9,11 @@ import {
 } from '@/components/shared/AnimatedSidebar';
 import {useCart} from '@/context/CartProvider';
 import {useScrollLock} from '@/hooks/useScrollLock';
+import {
+  CART_HEADER_POPOVER_ID,
+  CART_HEADER_TRIGGER_ID,
+  openHeaderPopover,
+} from '@/components/shared/HeaderPopoverPanel';
 import type {ProductDetail} from '@/lib/types/db-types';
 
 type MobileSizeDrawerProps = {
@@ -26,7 +31,7 @@ export default function MobileSizeDrawer({
   onClose,
   onAddSuccess,
 }: MobileSizeDrawerProps) {
-  const {addItem, openCart} = useCart();
+  const {addItem} = useCart();
   useScrollLock(isOpen);
 
   const handleSizeSelect = async (size: string) => {
@@ -34,7 +39,7 @@ export default function MobileSizeDrawer({
     try {
       await addItem({product_id: product.id, quantity: 1, size});
       onAddSuccess();
-      openCart();
+      openHeaderPopover(CART_HEADER_TRIGGER_ID, CART_HEADER_POPOVER_ID);
     } catch (error) {
       console.error('Error adding to cart:', error);
     }

@@ -81,7 +81,7 @@
   min-width: 100%;
   max-width: 100%;
   margin-top: auto;
-  height: fit-content;
+  height: var(--modal-bottom-max-height, 70dvh);
   min-height: var(--modal-bottom-min-height, auto);
   max-height: var(--modal-bottom-max-height, 70dvh);
   transform: translateY(100%);
