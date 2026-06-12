@@ -5,6 +5,7 @@ import type {ReactNode} from 'react';
 import {useInView} from 'react-intersection-observer';
 import {useSearchParams} from 'next/navigation';
 import type {ProductCard} from '@/lib/types/db-types';
+import type {SearchMode} from '@/lib/types/query-types';
 import ProductGrid from '@/components/products/product-grid/ProductGrid';
 import {useInfiniteProducts} from '@/hooks/useInfiniteProducts';
 import SpinningLogo from '@/components/shared/ui/SpinningLogo';
@@ -25,6 +26,8 @@ export type InfiniteProductListProps =
       mode: 'search';
       initialProducts: ProductCard[];
       initialHasMore: boolean;
+      /** Search mode of the SSR first page (fts or fuzzy fallback). */
+      initialSearchMode?: SearchMode;
       query: string;
       totalCount?: number;
       className?: string;
@@ -64,6 +67,7 @@ export default function InfiniteProductList(props: InfiniteProductListProps) {
           query: props.query,
           initialProducts: props.initialProducts,
           initialHasMore: props.initialHasMore,
+          initialSearchMode: props.initialSearchMode,
         };
 
   const {data, fetchNextPage, hasNextPage, isFetchingNextPage, error} =

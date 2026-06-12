@@ -1,33 +1,95 @@
-import {and, or, eq, ilike, gt, lt, desc, asc, sql} from 'drizzle-orm';
+import {and, or, eq, gt, lt, desc, asc, sql, type SQL} from 'drizzle-orm';
 import {productsTable} from '@/drizzle/db/schema';
 
 import {sortSizes} from '@/utils/filterSort';
 import {db} from '@/drizzle/index';
 import {NEW_PRODUCT_DAYS} from '@/lib/constants';
 import {
-  productSearchGenderExactIlikePattern,
-  productSearchIlikePattern,
+  normalizeProductSearchQuery,
+  productSearchTsQuery,
+  FUZZY_WORD_SIMILARITY_THRESHOLD,
 } from '@/lib/search-query';
+import type {SearchMode} from '@/lib/types/query-types';
 
 /**
- * Build WHERE clauses for full-text style search across product fields.
- * Gender uses exact ILIKE so "men" does not match stored value "women".
+ * Build WHERE clauses for product search.
+ * 'fts': weighted full-text search on the generated search_vector column
+ * (stemming + per-term prefix matching, GIN-indexed). "men" does not match
+ * "women" since prefix matching anchors at the start of each lexeme.
+ * 'fuzzy': pg_trgm word similarity on name/brand/category — the typo
+ * fallback when FTS finds nothing.
  */
-export function createTextSearchFilters(query: string | undefined) {
-  const searchTerm = productSearchIlikePattern(query);
-  const genderExact = productSearchGenderExactIlikePattern(query);
-  if (!searchTerm) return [];
-  const genderPattern = genderExact!;
+export function createSearchFilters(
+  query: string | undefined,
+  mode: SearchMode,
+) {
+  if (mode === 'fts') {
+    const tsquery = productSearchTsQuery(query);
+    if (!tsquery) return [];
+    return [
+      sql`${productsTable.search_vector} @@ to_tsquery('english', ${tsquery})`,
+    ];
+  }
 
+  const normalized = normalizeProductSearchQuery(query);
+  if (!normalized) return [];
+  // Function form instead of the <% operator: the operator only uses the trgm
+  // index at pg_trgm.word_similarity_threshold (default 0.6, too strict for
+  // typos) and lowering it needs SET LOCAL inside a transaction.
   return [
     or(
-      ilike(productsTable.name, searchTerm),
-      ilike(productsTable.category, searchTerm),
-      ilike(productsTable.brand, searchTerm),
-      ilike(productsTable.slug, searchTerm),
-      ilike(productsTable.gender, genderPattern),
+      sql`word_similarity(${normalized}, ${productsTable.name}) > ${FUZZY_WORD_SIMILARITY_THRESHOLD}`,
+      sql`word_similarity(${normalized}, ${productsTable.brand}) > ${FUZZY_WORD_SIMILARITY_THRESHOLD}`,
+      sql`word_similarity(${normalized}, ${productsTable.category}) > ${FUZZY_WORD_SIMILARITY_THRESHOLD}`,
     ),
   ];
+}
+
+/**
+ * Relevance score for ORDER BY and the rank cursor. ts_rank weights follow
+ * the setweight labels on search_vector (name 1.0 > brand 0.4 > category 0.2
+ * > gender 0.1); the fuzzy score weights columns the same way, name first.
+ * Cast to float8: ts_rank/word_similarity return float4, which does not
+ * round-trip exactly through the driver, breaking cursor equality.
+ */
+export function createSearchRankExpr(
+  query: string | undefined,
+  mode: SearchMode,
+): SQL<number> | null {
+  if (mode === 'fts') {
+    const tsquery = productSearchTsQuery(query);
+    if (!tsquery) return null;
+    return sql<number>`(ts_rank(${productsTable.search_vector}, to_tsquery('english', ${tsquery})))::float8`;
+  }
+
+  const normalized = normalizeProductSearchQuery(query);
+  if (!normalized) return null;
+  return sql<number>`(greatest(word_similarity(${normalized}, ${productsTable.name}), word_similarity(${normalized}, ${productsTable.brand}) * 0.5, word_similarity(${normalized}, ${productsTable.category}) * 0.25))::float8`;
+}
+
+/**
+ * Cursor for relevance-ordered pages:
+ * (rank < lastRank) OR (rank = lastRank AND id > lastId).
+ */
+export function buildRankCursorPagination(
+  rankExpr: SQL<number>,
+  lastId: string,
+  lastRank: number,
+) {
+  return [
+    or(
+      sql`${rankExpr} < ${lastRank}`,
+      and(sql`${rankExpr} = ${lastRank}`, gt(productsTable.id, lastId)),
+    ),
+  ];
+}
+
+/**
+ * ORDER BY for relevance: best match first, id tie-break for stable
+ * pagination. Deliberately ignores the order param.
+ */
+export function createRelevanceOrderClause(rankExpr: SQL<number>) {
+  return [desc(rankExpr), asc(productsTable.id)];
 }
 
 /**

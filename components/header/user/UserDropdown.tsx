@@ -12,7 +12,7 @@ import {
 } from '@/components/shared/HeaderPopoverPanel';
 import {useHeaderUserDisplay} from './UserButton';
 
-const userPanelClassName = `absolute overflow-visible top-[3.5rem] right-18 lg:right-27 w-[230px] lg:w-[300px] bg-white  rounded-xs shadow-lg py-1 z-20 border  border-gray-300
+const userPanelClassName = `absolute overflow-visible top-[3.5rem] right-18 sm:right-23.5 lg:right-27 w-[230px] lg:w-[300px] bg-white  rounded-xs shadow-lg py-1 z-20 border  border-gray-300
 
             before:content-[''] before:absolute before:bottom-full before:right-6 lg:before:left-1/2 before:w-0 before:h-0 before:border-[8px] before:border-transparent before:border-b-gray-400/80
 

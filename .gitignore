@@ -7,7 +7,6 @@
 !.yarn/releases
 !.yarn/versions
 /coverage
-/drizzle/migrations
 /public/uploads
 /.next/
 /out/

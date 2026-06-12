@@ -1,6 +1,7 @@
 'use client';
 
 import {ProductCard} from '@/lib/types/db-types';
+import type {SearchMode} from '@/lib/types/query-types';
 import {getInfiniteProducts} from '@/actions/product.actions';
 import {useInfiniteQuery} from '@tanstack/react-query';
 import {parseSortParam} from '@/utils/filterSort';
@@ -10,6 +11,7 @@ export function useInfiniteProducts({
   query,
   initialProducts,
   initialHasMore,
+  initialSearchMode,
   category,
   gender,
   color,
@@ -19,6 +21,8 @@ export function useInfiniteProducts({
   query?: string;
   initialProducts?: ProductCard[];
   initialHasMore?: boolean;
+  /** Mode the SSR first page was fetched with, so page 2 continues it. */
+  initialSearchMode?: SearchMode;
   category?: string;
   gender?: string;
   color?: string[];
@@ -35,12 +39,16 @@ export function useInfiniteProducts({
     queryFn: async ({
       pageParam,
     }: {
-      pageParam?: {lastId: string; lastValue?: number | string};
+      pageParam?: {
+        lastId: string;
+        lastValue?: number | string;
+        searchMode?: SearchMode;
+      };
     }) => {
       const result = await getInfiniteProducts({
         query,
         lastId: pageParam?.lastId || null,
-        lastValue: pageParam?.lastValue || null,
+        lastValue: pageParam?.lastValue ?? null,
         limit: 8,
         category: actualCategory,
         gender: gender || null,
@@ -49,10 +57,12 @@ export function useInfiniteProducts({
         sort: sortField,
         order,
         isNewOnly,
+        searchMode: pageParam?.searchMode,
       });
       return {
         products: result.products,
         hasMore: result.hasMore,
+        searchMode: result.searchMode,
       };
     },
 
@@ -66,11 +76,15 @@ export function useInfiniteProducts({
         lastValue = lastProduct.price;
       } else if (sortField === 'name') {
         lastValue = lastProduct.name;
+      } else if (query) {
+        // Relevance-sorted search: cursor carries the rank score
+        lastValue = lastProduct.rank;
       }
 
       return {
         lastId: lastProduct.id,
         lastValue,
+        searchMode: lastPage.searchMode,
       };
     },
 
@@ -83,6 +97,7 @@ export function useInfiniteProducts({
             {
               products: initialProducts,
               hasMore: initialHasMore ?? false,
+              searchMode: initialSearchMode,
             },
           ],
         }

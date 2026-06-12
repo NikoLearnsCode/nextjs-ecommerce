@@ -1,5 +1,6 @@
 import type {Metadata} from 'next';
 import {getInfiniteProducts} from '@/actions/product.actions';
+import type {Result} from '@/lib/types/query-types';
 import InfiniteProductList from '@/components/products/product-grid/InfiniteProductList';
 
 type Props = {
@@ -22,7 +23,7 @@ export async function generateMetadata({
 export default async function SearchPage({searchParams}: Props) {
   const {q = ''} = await searchParams;
 
-  const result = q
+  const result: Result = q
     ? await getInfiniteProducts({
         query: q,
         limit: 8,
@@ -51,6 +52,7 @@ export default async function SearchPage({searchParams}: Props) {
           query={q}
           initialHasMore={result.hasMore}
           initialProducts={result.products}
+          initialSearchMode={result.searchMode}
           totalCount={result.totalCount}
         />
       </div>

@@ -3,6 +3,9 @@ import {ProductFormData} from '../validators/admin.product-validation';
 
 export type SortField = 'id' | 'price' | 'name';
 
+/** 'fts' = full-text search; 'fuzzy' = pg_trgm fallback when FTS finds nothing. */
+export type SearchMode = 'fts' | 'fuzzy';
+
 export type SortOrder = 'asc' | 'desc';
 
 export type SortParams = {
@@ -28,12 +31,15 @@ export type Params = {
   metadata?: boolean;
   isNewOnly?: boolean;
   includeCount?: boolean;
+  searchMode?: SearchMode;
 };
 
 export type Result = {
   products: ProductCard[];
   hasMore: boolean;
   totalCount?: number;
+  /** Mode that produced the page; pages 2+ must request the same mode. */
+  searchMode?: SearchMode;
   metadata?: {
     availableColors: string[];
     availableSizes: string[];

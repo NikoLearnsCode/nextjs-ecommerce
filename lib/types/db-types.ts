@@ -7,7 +7,8 @@ import {
   orderItemsTable,
 } from '@/drizzle/db/schema';
 
-export type Product = typeof productsTable.$inferSelect & {
+// search_vector is a DB-side FTS document; never ship it to the client
+export type Product = Omit<typeof productsTable.$inferSelect, 'search_vector'> & {
   isNew?: boolean;
 };
 
@@ -64,6 +65,8 @@ export type ProductCard = Pick<
   | 'created_at'
 > & {
   isNew?: boolean;
+  /** Relevance score; present only on search results sorted by relevance. */
+  rank?: number;
 };
 
 export type ProductDetail = Product;

@@ -2,11 +2,14 @@
 
 import {and, eq, count, sql, ne, getTableColumns} from 'drizzle-orm';
 import {productsTable} from '@/drizzle/db/schema';
-import type {Params, Result} from '@/lib/types/query-types';
+import type {Params, Result, SearchMode} from '@/lib/types/query-types';
 import {NEW_PRODUCT_DAYS} from '@/lib/constants';
 import {ProductDetail, CarouselCard} from '@/lib/types/db-types';
 import {
-  createTextSearchFilters,
+  createSearchFilters,
+  createSearchRankExpr,
+  buildRankCursorPagination,
+  createRelevanceOrderClause,
   buildCategoryGenderFilters,
   buildSizeColorFilters,
   buildIsNewFilter,
@@ -14,6 +17,7 @@ import {
   createSortOrderClause,
   fetchAvailableFilterOptions,
 } from '@/actions/lib/infiniteQuery-builder';
+import {productSearchTsQuery} from '@/lib/search-query';
 import {db} from '@/drizzle/index';
 
 export async function getProductSlugAndRelatedProducts(slug: string): Promise<{
@@ -21,9 +25,13 @@ export async function getProductSlugAndRelatedProducts(slug: string): Promise<{
   categoryProducts: CarouselCard[];
   genderProducts: CarouselCard[];
 }> {
+  // Exclude the FTS document from payloads sent to the client
+  const {search_vector: _sv, ...productColumns} =
+    getTableColumns(productsTable);
+
   const mainProduct = await db
     .select({
-      ...getTableColumns(productsTable),
+      ...productColumns,
       isNew:
         sql<boolean>`${productsTable.published_at} > NOW() - INTERVAL '${sql.raw(NEW_PRODUCT_DAYS.toString())} days'`.as(
           'isNew'
@@ -121,41 +129,44 @@ export async function getInfiniteProducts({
   metadata = false,
   isNewOnly = false,
   includeCount = false,
+  searchMode,
 }: Params): Promise<Result> {
   try {
-    const searchConditions = createTextSearchFilters(query);
-    const basicFilters = buildCategoryGenderFilters(category, gender);
-    const arrayFilters = buildSizeColorFilters(sizes, color);
-    const isNewFilters = buildIsNewFilter(isNewOnly);
-
-    const baseWhereConditions = [
-      ...searchConditions,
-      ...basicFilters,
-      ...arrayFilters,
-      ...isNewFilters,
+    const hasSearch = productSearchTsQuery(query) !== null;
+    const staticConditions = [
+      ...buildCategoryGenderFilters(category, gender),
+      ...buildSizeColorFilters(sizes, color),
+      ...buildIsNewFilter(isNewOnly),
     ];
-    const baseWhereClause =
-      baseWhereConditions.length > 0 ? and(...baseWhereConditions) : undefined;
 
-    const paginationConditions = buildCursorPaginationWhereClause(
-      sort,
-      order,
-      lastId,
-      lastValue
-    );
-    const productWhereConditions = [
-      ...baseWhereConditions,
-      ...paginationConditions,
-    ];
-    const productWhereClause =
-      productWhereConditions.length > 0
-        ? and(...productWhereConditions)
-        : undefined;
+    const runPage = async (mode: SearchMode) => {
+      const searchConditions = hasSearch ? createSearchFilters(query, mode) : [];
+      // Relevance ordering only on the default sort; explicit price/name
+      // sorts keep their ordering and cursor semantics.
+      const rankExpr =
+        hasSearch && sort === 'id' ? createSearchRankExpr(query, mode) : null;
+      const baseConditions = [...searchConditions, ...staticConditions];
 
-    const orderByFields = createSortOrderClause(sort, order);
+      const useRankCursor =
+        rankExpr !== null && lastId !== null && typeof lastValue === 'number';
+      const paginationConditions = useRankCursor
+        ? buildRankCursorPagination(rankExpr!, lastId!, lastValue as number)
+        : buildCursorPaginationWhereClause(sort, order, lastId, lastValue);
 
-    const queriesToRun: [Promise<any>, ...Promise<any>[]] = [
-      db
+      const orderByFields = rankExpr
+        ? createRelevanceOrderClause(rankExpr)
+        : createSortOrderClause(sort, order);
+
+      const productWhereConditions = [
+        ...baseConditions,
+        ...paginationConditions,
+      ];
+      const productWhereClause =
+        productWhereConditions.length > 0
+          ? and(...productWhereConditions)
+          : undefined;
+
+      const rows = await db
         .select({
           id: productsTable.id,
           name: productsTable.name,
@@ -170,39 +181,57 @@ export async function getInfiniteProducts({
             sql<boolean>`${productsTable.created_at} > NOW() - INTERVAL '${sql.raw(NEW_PRODUCT_DAYS.toString())} days'`.as(
               'isNew'
             ),
+          ...(rankExpr ? {rank: rankExpr.as('rank')} : {}),
         })
         .from(productsTable)
         .where(productWhereClause)
         .orderBy(...orderByFields)
-        .limit(limit + 1),
-    ];
+        .limit(limit + 1);
 
-    if (includeCount) {
-      queriesToRun.push(
-        db.select({count: count()}).from(productsTable).where(baseWhereClause)
-      );
+      return {rows, baseConditions};
+    };
+
+    let mode: SearchMode = searchMode ?? 'fts';
+    let {rows, baseConditions} = await runPage(mode);
+
+    // First-page FTS miss -> trigram fallback for typos. Later pages carry
+    // the decided mode via searchMode and never re-decide.
+    if (hasSearch && mode === 'fts' && lastId === null && rows.length === 0) {
+      mode = 'fuzzy';
+      ({rows, baseConditions} = await runPage(mode));
     }
 
-    const [productsResult, countResult] = await Promise.all(queriesToRun);
-
-    const hasMore = productsResult.length > limit;
-    const products = hasMore ? productsResult.slice(0, limit) : productsResult;
+    const hasMore = rows.length > limit;
+    const products = hasMore ? rows.slice(0, limit) : rows;
 
     const result: Result = {
       products,
       hasMore,
     };
+    if (hasSearch) {
+      result.searchMode = mode;
+    }
+
+    // Count/metadata only after the search mode is final, so the total
+    // reflects the conditions that actually produced the page.
+    const baseWhereClause =
+      baseConditions.length > 0 ? and(...baseConditions) : undefined;
+
+    const [countResult, metadataResult] = await Promise.all([
+      includeCount
+        ? db.select({count: count()}).from(productsTable).where(baseWhereClause)
+        : Promise.resolve(null),
+      metadata
+        ? fetchAvailableFilterOptions(gender, category, isNewOnly)
+        : Promise.resolve(null),
+    ]);
 
     if (includeCount) {
       result.totalCount = countResult?.[0]?.count ?? 0;
     }
 
-    if (metadata) {
-      result.metadata = await fetchAvailableFilterOptions(
-        gender,
-        category,
-        isNewOnly
-      );
+    if (metadataResult) {
+      result.metadata = metadataResult;
     }
 
     return result;

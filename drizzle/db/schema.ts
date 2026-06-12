@@ -1,5 +1,7 @@
 import {
   boolean,
+  customType,
+  index,
   integer,
   jsonb,
   pgTable,
@@ -13,7 +15,7 @@ import {
   serial,
   pgEnum,
 } from 'drizzle-orm/pg-core';
-import {relations} from 'drizzle-orm';
+import {relations, sql, type SQL} from 'drizzle-orm';
 import type {DeliveryFormData} from '@/lib/validators/checkout-validation';
 import type {AdapterAccount} from '@/lib/types/auth-types';
 
@@ -54,29 +56,55 @@ export const sessionsTable = pgTable('sessions', {
   expires: timestamp('expires', {mode: 'date', withTimezone: true}).notNull(),
 });
 
-export const productsTable = pgTable('products', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  name: varchar('name', {length: 255}).notNull(),
-  slug: varchar('slug', {length: 255}).notNull().unique(),
-  description: varchar('description', {length: 255}).notNull(),
-  price: integer('price').notNull(),
-  brand: varchar('brand', {length: 255}).notNull(),
-  gender: varchar('gender', {length: 255}).notNull(),
-  category: varchar('category', {length: 255}).notNull(),
-  color: varchar('color', {length: 255}).notNull(),
-  specs: jsonb('specs').$type<string[]>(),
-  images: jsonb('images').$type<string[]>().notNull(),
-  sizes: jsonb('sizes').$type<string[]>().notNull(),
-  created_at: timestamp('created_at', {withTimezone: true})
-    .notNull()
-    .defaultNow(),
-  updated_at: timestamp('updated_at', {withTimezone: true})
-    .notNull()
-    .defaultNow(),
-  published_at: timestamp('published_at', {withTimezone: true})
-    .notNull()
-    .defaultNow(),
+const tsvector = customType<{data: string}>({
+  dataType() {
+    return 'tsvector';
+  },
 });
+
+export const productsTable = pgTable(
+  'products',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    name: varchar('name', {length: 255}).notNull(),
+    slug: varchar('slug', {length: 255}).notNull().unique(),
+    description: varchar('description', {length: 255}).notNull(),
+    price: integer('price').notNull(),
+    brand: varchar('brand', {length: 255}).notNull(),
+    gender: varchar('gender', {length: 255}).notNull(),
+    category: varchar('category', {length: 255}).notNull(),
+    color: varchar('color', {length: 255}).notNull(),
+    specs: jsonb('specs').$type<string[]>(),
+    images: jsonb('images').$type<string[]>().notNull(),
+    sizes: jsonb('sizes').$type<string[]>().notNull(),
+    created_at: timestamp('created_at', {withTimezone: true})
+      .notNull()
+      .defaultNow(),
+    updated_at: timestamp('updated_at', {withTimezone: true})
+      .notNull()
+      .defaultNow(),
+    published_at: timestamp('published_at', {withTimezone: true})
+      .notNull()
+      .defaultNow(),
+    // Weighted FTS document: name (A) ranks above brand (B), category (C), gender (D)
+    search_vector: tsvector('search_vector').generatedAlwaysAs(
+      (): SQL =>
+        sql`setweight(to_tsvector('english', ${productsTable.name}), 'A') || setweight(to_tsvector('english', ${productsTable.brand}), 'B') || setweight(to_tsvector('english', ${productsTable.category}), 'C') || setweight(to_tsvector('english', ${productsTable.gender}), 'D')`
+    ),
+  },
+  (table) => [
+    index('products_search_vector_idx').using('gin', table.search_vector),
+    index('products_name_trgm_idx').using('gin', table.name.op('gin_trgm_ops')),
+    index('products_brand_trgm_idx').using(
+      'gin',
+      table.brand.op('gin_trgm_ops')
+    ),
+    index('products_category_trgm_idx').using(
+      'gin',
+      table.category.op('gin_trgm_ops')
+    ),
+  ]
+);
 
 export const cartsTable = pgTable('carts', {
   id: uuid('id').primaryKey().defaultRandom(),
