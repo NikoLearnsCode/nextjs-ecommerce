@@ -55,13 +55,10 @@ function ProductCardImages({
   const suppressLinkClick = useRef(false);
   const isAnimatingRef = useRef(false);
   const slideIndexRef = useRef(slideIndex);
-  slideIndexRef.current = slideIndex;
-  const imageFingerprint = useMemo(() => images.join('\0'), [images]);
 
   useEffect(() => {
-    setSlideIndex(1);
-    isAnimatingRef.current = false;
-  }, [slug, imageFingerprint]);
+    slideIndexRef.current = slideIndex;
+  }, [slideIndex]);
 
   useEffect(() => {
     if (skipTransition) {
@@ -161,9 +158,6 @@ function ProductCardImages({
       >
         {extendedImages.map((src, i) => {
           const imageNumber = i === 0 || i === n ? n : i === n + 1 ? 1 : i;
-          const isCloneSlide = i === 0 || i === n + 1;
-          const shouldEagerLoad =
-            (imagePriority && i === 1) || isCloneSlide || i === n;
 
           return (
             <div
@@ -312,6 +306,7 @@ function ProductCardInner({
       >
         {hasMultipleImages ? (
           <ProductCardImages
+            key={`${slug}-${images.join('\0')}`}
             images={images}
             slug={slug}
             name={name}

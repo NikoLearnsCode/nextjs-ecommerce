@@ -37,7 +37,7 @@ export default async function SearchPage({searchParams}: Props) {
         <div className='text-center max-w-full '>
           <p className='px-6 text-sm md:text-base font-medium break-words '>
             No products were found for{' '}
-            <span className='italic font-medium'>"{q}"</span>.
+            <span className='italic font-medium'>{`"${q}"`}</span>.
           </p>
         </div>
       </div>

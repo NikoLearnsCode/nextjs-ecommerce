@@ -1,6 +1,6 @@
 'use client';
 
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useRef, useState, useMemo} from 'react';
 import {FiX} from 'react-icons/fi';
 import {useKeyboardShortcut} from '@/hooks/useKeyboardShortcut';
 
@@ -32,35 +32,43 @@ export default function ConfirmDialog({
   triggerElement,
 }: ConfirmDialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
-  const [position, setPosition] = useState({x: 0, y: 0});
   const [isVisible, setIsVisible] = useState(false);
 
-  useEffect(() => {
-    if (isOpen && triggerElement) {
-      const rect = triggerElement.getBoundingClientRect();
-      const dialogWidth = 365;
-      const dialogHeight = 180;
-
-      let x = rect.left + rect.width / 2 - dialogWidth / 2;
-      let y = rect.top - dialogHeight - 30;
-
-      if (x < 5) x = 5;
-      if (x + dialogWidth > window.innerWidth - 5) {
-        x = window.innerWidth - dialogWidth - 5;
-      }
-
-      if (y < 5) {
-        y = rect.bottom + 5;
-      }
-
-      setPosition({x, y});
-
-      setTimeout(() => setIsVisible(true), 50);
-    } else if (isOpen && !triggerElement) {
-      setIsVisible(true);
-    } else {
-      setIsVisible(false);
+  const position = useMemo(() => {
+    if (!isOpen || !triggerElement) {
+      return {x: 0, y: 0};
     }
+
+    const rect = triggerElement.getBoundingClientRect();
+    const dialogWidth = 365;
+    const dialogHeight = 180;
+
+    let x = rect.left + rect.width / 2 - dialogWidth / 2;
+    let y = rect.top - dialogHeight - 30;
+
+    if (x < 5) x = 5;
+    if (x + dialogWidth > window.innerWidth - 5) {
+      x = window.innerWidth - dialogWidth - 5;
+    }
+
+    if (y < 5) {
+      y = rect.bottom + 5;
+    }
+
+    return {x, y};
+  }, [isOpen, triggerElement]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      const frameId = requestAnimationFrame(() => setIsVisible(false));
+      return () => cancelAnimationFrame(frameId);
+    }
+
+    const timeoutId = window.setTimeout(
+      () => setIsVisible(true),
+      triggerElement ? 50 : 0,
+    );
+    return () => window.clearTimeout(timeoutId);
   }, [isOpen, triggerElement]);
 
   // Escape closes the dialog

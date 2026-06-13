@@ -121,8 +121,11 @@ export function FavoritesProvider({children}: {children: React.ReactNode}) {
   );
 
   useEffect(() => {
-    refreshFavorites();
-  }, []);
+    // refreshFavorites only sets state after awaiting the server action, so it
+    // can't cascade synchronous renders - the rule can't see past the await.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- async updates only
+    void refreshFavorites();
+  }, [refreshFavorites]);
 
   /*   useEffect(() => {
     if (userIdRef.current !== user?.id) {

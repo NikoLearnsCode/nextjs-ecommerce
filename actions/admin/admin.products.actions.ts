@@ -108,7 +108,9 @@ export async function createProductWithImages(
   if (imageFiles.length === 0) {
     return {success: false, error: 'At least one image must be uploaded.'};
   }
-  const {_images, ...rawData} = Object.fromEntries(formData.entries());
+  const {images: _images, ...rawData} = Object.fromEntries(
+    formData.entries(),
+  );
   const validationResult = productApiSchema.safeParse(rawData);
 
   if (!validationResult.success) {
@@ -183,8 +185,9 @@ export async function updateProductWithImages(
     return {success: false, error: 'At least one image must remain.'};
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const {images, ...rawData} = Object.fromEntries(formData.entries());
+  const {images: _images, ...rawData} = Object.fromEntries(
+    formData.entries(),
+  );
 
   const validationResult = productApiSchema.safeParse(rawData);
 

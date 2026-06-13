@@ -9,8 +9,8 @@ let originalStyles: {
   paddingRight: string;
 } | null = null;
 
-/** True if the touch target sits inside a vertically scrollable element (do not block). */
-function touchTargetCanScrollVertically(target: EventTarget | null): boolean {
+/** True if the touch target sits inside a scrollable element (do not block). */
+function touchTargetCanScroll(target: EventTarget | null): boolean {
   let el: Element | null =
     target instanceof Element
       ? target
@@ -20,10 +20,17 @@ function touchTargetCanScrollVertically(target: EventTarget | null): boolean {
   const root = document.documentElement;
   while (el && el !== root) {
     const style = window.getComputedStyle(el);
-    const overflowY = style.overflowY;
-    const scrollable =
-      overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay';
-    if (scrollable && el.scrollHeight > el.clientHeight) {
+    const canScrollY =
+      (style.overflowY === 'auto' ||
+        style.overflowY === 'scroll' ||
+        style.overflowY === 'overlay') &&
+      el.scrollHeight > el.clientHeight;
+    const canScrollX =
+      (style.overflowX === 'auto' ||
+        style.overflowX === 'scroll' ||
+        style.overflowX === 'overlay') &&
+      el.scrollWidth > el.clientWidth;
+    if (canScrollY || canScrollX) {
       return true;
     }
     el = el.parentElement;
@@ -42,7 +49,7 @@ function lockMobileTouchScroll() {
   if (touchLockActive) return;
 
   touchMoveHandler = (e: TouchEvent) => {
-    if (touchTargetCanScrollVertically(e.target)) return;
+    if (touchTargetCanScroll(e.target)) return;
     e.preventDefault();
   };
   document.addEventListener('touchmove', touchMoveHandler, {

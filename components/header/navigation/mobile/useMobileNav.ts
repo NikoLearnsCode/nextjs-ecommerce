@@ -1,4 +1,4 @@
-import {useState, useEffect, useCallback} from 'react';
+import {useState, useCallback} from 'react';
 import {usePathname} from 'next/navigation';
 import {NavLink} from '@/lib/types/category-types';
 import {useScrollLock} from '@/hooks/useScrollLock';
@@ -30,10 +30,12 @@ export function useMobileNav(navLinks: NavLink[]) {
   >('forward');
 
   /** Sync active tab when pathname changes (e.g. browser back). */
-  useEffect(() => {
+  const [lastPathname, setLastPathname] = useState(pathname);
+  if (pathname !== lastPathname) {
+    setLastPathname(pathname);
     setActiveCategoryIndex(findInitialCategory(navLinks, pathname));
-    setNavigationStack([]); // Reset navigation stack
-  }, [navLinks, pathname]);
+    setNavigationStack([]);
+  }
 
   const toggleMenu = useCallback(() => {
     setIsMenuOpen((prev) => !prev);

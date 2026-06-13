@@ -7,7 +7,7 @@ export default function NotFound() {
       <div className='text-center'>
         <h1 className='text-5xl mb-4'>404</h1>
         <h2 className='text-sm font-medium text-primary mb-7'>
-          Congrats! You found a page that doesn't exist (yet)
+          Congrats! You found a page that doesn{"'"}t exist (yet)
         </h2>
 
         <Link

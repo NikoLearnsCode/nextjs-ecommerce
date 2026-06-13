@@ -52,8 +52,7 @@ export async function createCategoryWithImages(
     };
   }
 
-  console.log('validationResult', validationResult);
-  let uploadedImages: {desktop?: string; mobile?: string} = {};
+  const uploadedImages: {desktop?: string; mobile?: string} = {};
   try {
     const {desktopImageFile, mobileImageFile, ...categoryData} =
       validationResult.data;
@@ -90,11 +89,11 @@ export async function createCategoryWithImages(
     revalidatePath('/admin');
 
     return {success: true, data: newCategory};
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating category:', error);
     await cleanupUploadedImages(Object.values(uploadedImages));
 
-    if (error.message.startsWith('Conflict:')) {
+    if (error instanceof Error && error.message.startsWith('Conflict:')) {
       return {success: false, error: error.message.replace('Conflict: ', '')};
     }
     return {success: false, error: 'An unexpected server error occurred.'};
@@ -165,11 +164,11 @@ export async function updateCategoryWithImages(
     revalidatePath('/admin');
 
     return {success: true, data: updatedCategory};
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating category:', error);
     await cleanupUploadedImages(Object.values(uploadedImages));
 
-    if (error.message.startsWith('Conflict:')) {
+    if (error instanceof Error && error.message.startsWith('Conflict:')) {
       return {success: false, error: error.message.replace('Conflict: ', '')};
     }
     return {success: false, error: 'An unexpected server error occurred.'};

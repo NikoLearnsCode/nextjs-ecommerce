@@ -1,7 +1,7 @@
 
 'use client';
 
-import {Controller, useForm} from 'react-hook-form';
+import {Controller, useForm, useWatch} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {Category} from '@/lib/types/category-types';
 import {useAdmin} from '@/context/AdminProvider';
@@ -41,15 +41,20 @@ export default function CategoryForm({mode, initialData}: CategoryFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [desktopImage, setDesktopImage] = useState<File | null>(null);
   const [mobileImage, setMobileImage] = useState<File | null>(null);
-  const [desktopPreview, setDesktopPreview] = useState<string>('');
-  const [mobilePreview, setMobilePreview] = useState<string>('');
+  const [desktopPreview, setDesktopPreview] = useState<string>(() =>
+    mode === 'edit' ? (initialData?.desktopImage ?? '') : '',
+  );
+  const [mobilePreview, setMobilePreview] = useState<string>(() =>
+    mode === 'edit' ? (initialData?.mobileImage ?? '') : '',
+  );
+  const [desktopImageError, setDesktopImageError] = useState(false);
+  const [mobileImageError, setMobileImageError] = useState(false);
 
   const {
     register,
     handleSubmit,
     formState: {errors, isDirty},
     setValue,
-    watch,
     reset,
     control,
   } = useForm<CategoryFormData>({
@@ -57,6 +62,7 @@ export default function CategoryForm({mode, initialData}: CategoryFormProps) {
     mode: 'onChange',
     defaultValues: {
       name: '',
+
       slug: '',
       type: undefined,
       displayOrder: 0,
@@ -69,6 +75,7 @@ export default function CategoryForm({mode, initialData}: CategoryFormProps) {
     if (files && files[0]) {
       const file = files[0];
       setDesktopImage(file);
+      setDesktopImageError(false);
       const reader = new FileReader();
       reader.onload = (e) => setDesktopPreview(e.target?.result as string);
       reader.readAsDataURL(file);
@@ -79,6 +86,7 @@ export default function CategoryForm({mode, initialData}: CategoryFormProps) {
     if (files && files[0]) {
       const file = files[0];
       setMobileImage(file);
+      setMobileImageError(false);
       const reader = new FileReader();
       reader.onload = (e) => setMobilePreview(e.target?.result as string);
       reader.readAsDataURL(file);
@@ -101,6 +109,27 @@ export default function CategoryForm({mode, initialData}: CategoryFormProps) {
     [categories]
   );
 
+  const formSyncKey =
+    mode === 'edit' && initialData ? String(initialData.id) : `${mode}-create`;
+  const [lastFormSyncKey, setLastFormSyncKey] = useState(formSyncKey);
+
+  if (formSyncKey !== lastFormSyncKey) {
+    setLastFormSyncKey(formSyncKey);
+    setDesktopImageError(false);
+    setMobileImageError(false);
+    if (mode === 'edit' && initialData) {
+      setDesktopPreview(initialData.desktopImage ?? '');
+      setMobilePreview(initialData.mobileImage ?? '');
+      setDesktopImage(null);
+      setMobileImage(null);
+    } else {
+      setDesktopPreview('');
+      setMobilePreview('');
+      setDesktopImage(null);
+      setMobileImage(null);
+    }
+  }
+
   useEffect(() => {
     if (mode === 'edit' && initialData) {
       reset({
@@ -111,13 +140,11 @@ export default function CategoryForm({mode, initialData}: CategoryFormProps) {
         isActive: initialData.isActive,
         parentId: initialData.parentId || null,
       });
-      if (initialData.desktopImage) setDesktopPreview(initialData.desktopImage);
-      if (initialData.mobileImage) setMobilePreview(initialData.mobileImage);
     }
   }, [mode, initialData, reset]);
 
-  const watchedName = watch('name');
-  const watchedSlug = watch('slug');
+  const watchedName = useWatch({control, name: 'name'});
+  const watchedSlug = useWatch({control, name: 'slug'});
 
   useEffect(() => {
     if (watchedName && mode === 'create') {
@@ -126,7 +153,8 @@ export default function CategoryForm({mode, initialData}: CategoryFormProps) {
     }
   }, [watchedName, setValue, mode]);
 
-  const watchedType = watch('type');
+  const watchedType = useWatch({control, name: 'type'});
+  const watchedIsActive = useWatch({control, name: 'isActive'});
 
   const isParentSelectionEnabled = Boolean(
     watchedType &&
@@ -165,11 +193,26 @@ export default function CategoryForm({mode, initialData}: CategoryFormProps) {
     setDesktopPreview('');
     setMobileImage(null);
     setMobilePreview('');
+    setDesktopImageError(false);
+    setMobileImageError(false);
+  };
+
+  // Hero images are handled outside react-hook-form, so flag the error
+  // manually when a MAIN-CATEGORY is submitted without both images. Doubles as
+  // the react-hook-form onInvalid handler so the state stays in sync.
+  const validateImages = () => {
+    if (watchedType !== 'MAIN-CATEGORY') return true;
+    const missingDesktop = !desktopPreview;
+    const missingMobile = !mobilePreview;
+    setDesktopImageError(missingDesktop);
+    setMobileImageError(missingMobile);
+    return !missingDesktop && !missingMobile;
   };
 
   // form action + react-hook-form wrapper
   // Client-side validation before submitting to the server
   const onSubmit = () => {
+    if (!validateImages()) return;
     startTransition(async () => {
       if (!formRef.current) return;
       const formData = new FormData(formRef.current);
@@ -204,10 +247,12 @@ export default function CategoryForm({mode, initialData}: CategoryFormProps) {
   return (
     <form
       ref={formRef}
-      onSubmit={handleSubmit(onSubmit)}
+      // react-hook-form reads refs inside handleSubmit; safe here.
+      // eslint-disable-next-line react-hooks/refs -- react-hook-form submit handler
+      onSubmit={handleSubmit(onSubmit, validateImages)}
       className='space-y-5 h-full flex flex-col'
     >
-      <div className='flex-1 space-y-4 overflow-y-auto pt-5 pb-2 scrollbar-hide pr-5 -mr-5'>
+      <div className='flex-1 space-y-4 overflow-y-auto pt-5 pb-2 scrollbar-hide px-1'>
         <div>
           <Controller
             name='type'
@@ -301,14 +346,14 @@ export default function CategoryForm({mode, initialData}: CategoryFormProps) {
           className='ml-1 w-7 h-6 checked:bg-[length:1.25rem_1.25rem]'
           {...register('isActive')}
           id='category-is-active'
-          label={watch('isActive') ? 'Active' : 'Inactive'}
-          checked={watch('isActive')}
+          label={watchedIsActive ? 'Active' : 'Inactive'}
+          checked={watchedIsActive}
         />
 
         {watchedType === 'MAIN-CATEGORY' && (
           <div className='z-10 pb-2.5 pt-7 bg-white space-y-2'>
             <div>
-              <label className='block -mb-2 text-sm font-medium text-gray-700'>
+              <label className='block mb-2 text-sm font-medium text-gray-700'>
                 <span className='font-semibold'>Desktop image</span> (16:9)
               </label>
               <FileInput
@@ -316,8 +361,12 @@ export default function CategoryForm({mode, initialData}: CategoryFormProps) {
                 accept='image/*'
                 className='w-full'
                 id='desktop-image-upload'
+                hasError={desktopImageError}
+                errorMessage='A desktop image is required'
               >
-                <UploadIcon />
+                <UploadIcon
+                  message={!desktopPreview ? 'Image is required *' : ''}
+                />
               </FileInput>
 
               {desktopPreview && (
@@ -341,7 +390,7 @@ export default function CategoryForm({mode, initialData}: CategoryFormProps) {
               )}
             </div>
             <div className='mt-6'>
-              <label className='block -mb-2 text-sm font-medium text-gray-700'>
+              <label className='block mb-2 text-sm font-medium text-gray-700'>
                 <span className='font-semibold'>Mobile image</span> (9:16)
               </label>
               <FileInput
@@ -349,8 +398,12 @@ export default function CategoryForm({mode, initialData}: CategoryFormProps) {
                 accept='image/*'
                 className='w-full'
                 id='mobile-image-upload'
+                hasError={mobileImageError}
+                errorMessage='A mobile image is required'
               >
-                <UploadIcon />
+                <UploadIcon
+                  message={!mobilePreview ? 'Image is required *' : ''}
+                />
               </FileInput>
               {mobilePreview && (
                 <div className='mt-2.5 relative group'>

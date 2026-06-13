@@ -73,8 +73,16 @@ export function CartProvider({children}: {children: React.ReactNode}) {
   }, []);
 
   // Central handler for cart action results → state updates
+  type CartMutationResult = {
+    success?: boolean;
+    cartItems?: CartItemWithProduct[];
+    totalPrice?: number;
+    itemCount?: number;
+    error?: string;
+  };
+
   const handleActionResult = useCallback(
-    (result: any) => {
+    (result: CartMutationResult) => {
       if (result?.success) {
         setCartItems(result.cartItems || []);
         setTotalPrice(result.totalPrice || 0);
@@ -158,8 +166,11 @@ export function CartProvider({children}: {children: React.ReactNode}) {
   const closeCart = () => setIsCartOpen(false);
 
   useEffect(() => {
-    refreshCart();
-  }, []);
+    // refreshCart only sets state after awaiting the server action, so it
+    // can't cascade synchronous renders — the rule can't see past the await.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- async updates only
+    void refreshCart();
+  }, [refreshCart]);
 
   /*   useEffect(() => {
     if (userIdRef.current !== user?.id) {

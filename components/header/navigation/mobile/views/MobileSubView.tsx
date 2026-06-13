@@ -78,35 +78,40 @@ export function MobileSubView({
         <button
           onClick={onGoBack}
           type='button'
-          className='text-xs font-medium shrink-0 pl-1 pr-2 transition flex items-center'
+          className='text-xs font-medium shrink-0 pl-1 h-10 w-9  transition flex items-center '
           aria-label='Go back'
         >
           <ArrowLeft strokeWidth={1.25} className='w-5 h-5 text-gray-600' />
         </button>
 
         <nav
-          className='min-h-0 min-w-0 flex-1 touch-pan-x overflow-x-auto overflow-y-hidden overscroll-x-contain [-webkit-overflow-scrolling:touch] [scrollbar-width:thin]'
+          className='min-h-0 min-w-0 flex-1 touch-pan-x overflow-x-auto overflow-y-hidden overscroll-x-contain [-webkit-overflow-scrolling:touch] scrollbar-hide'
           aria-label='Breadcrumb'
         >
-          <div className='flex w-max max-w-none flex-nowrap items-center gap-2 py-0.5'>
+          <ol className='flex w-max max-w-none flex-nowrap items-center gap-2 py-0.5'>
             {/* Current level */}
-            <span className='whitespace-nowrap text-xs font-semibold text-gray-600 uppercase'>
+            <li
+              aria-current='location'
+              className='whitespace-nowrap text-xs font-semibold text-gray-600 uppercase'
+            >
               {currentLevel?.title}
-            </span>
+            </li>
 
             {/* Breadcrumb trail — parent levels */}
             {breadcrumbs.map((crumb, index) => (
-              <span
+              <li
                 key={index}
                 className='inline-flex shrink-0 items-center gap-2 whitespace-nowrap'
               >
-                <span className='shrink-0 text-gray-400'>-</span>
+                <span aria-hidden='true' className='shrink-0 text-gray-400'>
+                  -
+                </span>
                 <span className='whitespace-nowrap text-xs font-medium text-gray-500 uppercase'>
                   {crumb.title}
                 </span>
-              </span>
+              </li>
             ))}
-          </div>
+          </ol>
         </nav>
 
         <div className='absolute top-0 right-0 z-10'>

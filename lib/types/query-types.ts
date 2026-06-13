@@ -49,7 +49,7 @@ export type Result = {
 
 export type ActionResult = {
   success: boolean;
-  data?: any;
+  data?: unknown;
   error?: string;
   errors?: {
     [key in keyof ProductFormData]?: string[];

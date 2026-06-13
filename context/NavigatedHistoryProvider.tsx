@@ -1,6 +1,6 @@
 'use client';
 
-import {createContext, useContext, useState, useEffect, ReactNode} from 'react';
+import {createContext, useContext, useState, ReactNode} from 'react';
 
 type NavigatedProduct = {
   slug: string;
@@ -24,34 +24,28 @@ const NavigatedHistoryContext = createContext<
   NavigatedHistoryContextType | undefined
 >(undefined);
 
+function loadFromSession<T>(key: string, fallback: T): T {
+  // sessionStorage doesn't exist during SSR
+  if (typeof window === 'undefined') return fallback;
+  try {
+    const saved = sessionStorage.getItem(key);
+    return saved ? JSON.parse(saved) : fallback;
+  } catch (error) {
+    console.error(
+      `Failed to parse "${key}" from sessionStorage on initial load`,
+      error,
+    );
+    return fallback;
+  }
+}
+
 export const NavigatedHistoryProvider = ({children}: {children: ReactNode}) => {
-  const [navigatedProducts, setNavigatedProducts] = useState<
-    NavigatedProduct[]
-  >([]);
-  const [searchHistory, setSearchHistory] = useState<string[]>([]);
-
-  useEffect(() => {
-    try {
-      const savedNavigated = sessionStorage.getItem('navigated');
-      const parsedSavedNavigated = savedNavigated
-        ? JSON.parse(savedNavigated)
-        : [];
-      setNavigatedProducts(parsedSavedNavigated);
-
-      const savedSearches = sessionStorage.getItem('searchHistory');
-      const parsedSavedSearches = savedSearches
-        ? JSON.parse(savedSearches)
-        : [];
-      setSearchHistory(parsedSavedSearches);
-    } catch (error) {
-      console.error(
-        'Failed to parse items from sessionStorage on initial load',
-        error
-      );
-      setNavigatedProducts([]);
-      setSearchHistory([]);
-    }
-  }, []);
+  const [navigatedProducts, setNavigatedProducts] = useState(() =>
+    loadFromSession<NavigatedProduct[]>('navigated', []),
+  );
+  const [searchHistory, setSearchHistory] = useState(() =>
+    loadFromSession<string[]>('searchHistory', []),
+  );
 
   // Using in ProductCard.tsx - saves clicked product to navigated history
   const handleSaveNavigated = (product: {

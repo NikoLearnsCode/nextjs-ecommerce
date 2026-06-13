@@ -51,7 +51,7 @@ export default function AdminSidebar() {
         <div className='flex h-18 shrink-0 items-center justify-end'>
           <button
             onClick={toggleSidebar}
-            className=' px-3 py-6 cursor-pointer rounded-md relative flex flex-col justify-center items-center gap-1'
+            className=' px-3.5 py-6 cursor-pointer rounded-md relative flex flex-col justify-center items-center gap-1'
           >
             <motion.span
               className={`inline-flex border-t-[1.5px] w-5  ${isCollapsed ? 'border-gray-600' : 'border-gray-400'}`}

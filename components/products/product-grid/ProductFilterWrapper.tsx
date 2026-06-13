@@ -1,6 +1,6 @@
 'use client';
 
-import {useEffect, useState, useMemo} from 'react';
+import {useState, useMemo} from 'react';
 import {useRouter, usePathname, useSearchParams} from 'next/navigation';
 
 import {ProductCard} from '@/lib/types/db-types';
@@ -44,19 +44,23 @@ export default function ProductFilterWrapper({
 
   useScrollLock(isFilterDialogOpen);
 
+  const colorParam = searchParams.get('color');
+  const sizeParam = searchParams.get('sizes');
+  const sortParam = searchParams.get('sort');
+  const filterParamsKey = `${colorParam ?? ''}|${sizeParam ?? ''}|${sortParam ?? ''}`;
+
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [sortOrder, setSortOrder] = useState<string | null>(null);
+  const [lastFilterParamsKey, setLastFilterParamsKey] =
+    useState(filterParamsKey);
 
-  useEffect(() => {
-    const colorParam = searchParams.get('color');
-    const sizeParam = searchParams.get('sizes');
-    const sortParam = searchParams.get('sort');
-
+  if (filterParamsKey !== lastFilterParamsKey) {
+    setLastFilterParamsKey(filterParamsKey);
     setSelectedColors(colorParam ? colorParam.split(',') : []);
     setSelectedSizes(sizeParam ? sizeParam.split(',') : []);
     setSortOrder(sortParam);
-  }, [searchParams]);
+  }
 
   const toggleColor = (color: string) => {
     setSelectedColors((prev) =>

@@ -1,7 +1,7 @@
 'use client';
 
 import {zodResolver} from '@hookform/resolvers/zod';
-import {useForm, Controller} from 'react-hook-form';
+import {useForm, Controller, useWatch} from 'react-hook-form';
 import {
   productFormSchema,
   type ProductFormData,
@@ -10,9 +10,8 @@ import {Button} from '@/components/shared/ui/button';
 import {FloatingLabelInput} from '@/components/shared/ui/floatingLabelInput';
 import {CustomDateInput} from '@/components/admin/shared/DateInput';
 import {useAdmin} from '@/context/AdminProvider';
-import {useState, useEffect, useTransition, useRef} from 'react';
+import {useState, useEffect, useTransition, useRef, useMemo} from 'react';
 import {
-  DropdownOption,
   findCategoriesForDropdown,
 } from '@/components/admin/utils/admin.form-helpers';
 import {generateSlug} from '@/components/admin/utils/slug-generator';
@@ -39,20 +38,37 @@ export default function ProductForm({mode, initialData}: ProductFormProps) {
 
   const [isPending, startTransition] = useTransition();
   const [newImageFiles, setNewImageFiles] = useState<File[]>([]);
-  const [existingImages, setExistingImages] = useState<string[]>([]);
+  const [existingImages, setExistingImages] = useState<string[]>(() =>
+    mode === 'edit' && initialData?.images ? initialData.images : [],
+  );
   const [newImagePreviews, setNewImagePreviews] = useState<string[]>([]);
-  const [subCategoryOptions, setSubCategoryOptions] = useState<
-    DropdownOption[]
-  >([]);
+  const [imageError, setImageError] = useState(false);
   const [realtimeUpdate, setRealtimeUpdate] = useState(true);
   const formRef = useRef<HTMLFormElement>(null);
+
+  const imageStateKey =
+    mode === 'edit' && initialData ? String(initialData.id) : `${mode}-create`;
+  const [lastImageStateKey, setLastImageStateKey] = useState(imageStateKey);
+
+  if (imageStateKey !== lastImageStateKey) {
+    setLastImageStateKey(imageStateKey);
+    setImageError(false);
+    if (mode === 'edit' && initialData?.images) {
+      setExistingImages(initialData.images);
+      setNewImageFiles([]);
+      setNewImagePreviews([]);
+    } else {
+      setExistingImages([]);
+      setNewImageFiles([]);
+      setNewImagePreviews([]);
+    }
+  }
 
   const {
     register,
     handleSubmit,
     formState: {errors, isDirty},
     setValue,
-    watch,
     reset,
     control,
   } = useForm<ProductFormData>({
@@ -98,22 +114,24 @@ export default function ProductForm({mode, initialData}: ProductFormProps) {
     }
   }, [mode, initialData, reset]);
 
-  // Set existing images
-  useEffect(() => {
-    if (mode === 'edit' && initialData?.images) {
-      setExistingImages(initialData.images);
-      setNewImageFiles([]);
-      setNewImagePreviews([]);
-    } else {
-      setExistingImages([]);
-      setNewImageFiles([]);
-      setNewImagePreviews([]);
-    }
-  }, [mode, initialData]);
+  const selectedMainCategorySlug = useWatch({control, name: 'gender'});
+  const watchedName = useWatch({control, name: 'name'});
+  const watchedSlug = useWatch({control, name: 'slug'});
 
-  const selectedMainCategorySlug = watch('gender');
-  const watchedName = watch('name');
-  const watchedSlug = watch('slug');
+  const subCategoryOptions = useMemo(() => {
+    if (!selectedMainCategorySlug) return [];
+
+    const selectedMainCategory = categories.find(
+      (cat) => cat.slug === selectedMainCategorySlug,
+    );
+
+    if (!selectedMainCategory?.children) return [];
+
+    return findCategoriesForDropdown(selectedMainCategory.children, [
+      'MAIN-CATEGORY',
+      'SUB-CATEGORY',
+    ]);
+  }, [selectedMainCategorySlug, categories]);
 
   // Generate slug
   useEffect(() => {
@@ -121,27 +139,6 @@ export default function ProductForm({mode, initialData}: ProductFormProps) {
       setValue('slug', generateSlug(watchedName));
     }
   }, [watchedName, setValue, mode]);
-
-  // Clear sub when main changes; fetch sub options based on main
-  useEffect(() => {
-    if (!selectedMainCategorySlug) {
-      setSubCategoryOptions([]);
-      return;
-    }
-    const selectedMainCategory = categories.find(
-      (cat) => cat.slug === selectedMainCategorySlug
-    );
-    if (selectedMainCategory?.children) {
-      setSubCategoryOptions(
-        findCategoriesForDropdown(selectedMainCategory.children, [
-          'MAIN-CATEGORY',
-          'SUB-CATEGORY',
-        ])
-      );
-    } else {
-      setSubCategoryOptions([]);
-    }
-  }, [selectedMainCategorySlug, categories]);
 
   // Realtime date/time update (mostly unnecessary)
   useEffect(() => {
@@ -157,6 +154,7 @@ export default function ProductForm({mode, initialData}: ProductFormProps) {
   const handleImageChange = (files: File[]) => {
     setNewImageFiles((prev) => [...prev, ...files]);
     setNewImagePreviews((prev) => [...prev, ...files.map(URL.createObjectURL)]);
+    setImageError(false);
   };
 
   const handleReset = () => {
@@ -176,11 +174,24 @@ export default function ProductForm({mode, initialData}: ProductFormProps) {
     setExistingImages([]);
     setNewImageFiles([]);
     setNewImagePreviews([]);
-    setSubCategoryOptions([]);
+    setImageError(false);
     if (mode === 'create') setRealtimeUpdate(true);
   };
 
+  // Images are handled outside react-hook-form, so flag the error manually
+  // when a submit is attempted without any image.
+  const onInvalidSubmit = () => {
+    if (newImageFiles.length === 0 && existingImages.length === 0) {
+      setImageError(true);
+    }
+  };
+
   const onSubmit = () => {
+    if (newImageFiles.length === 0 && existingImages.length === 0) {
+      setImageError(true);
+      return;
+    }
+    setImageError(false);
     startTransition(async () => {
       if (!formRef.current) return;
 
@@ -220,13 +231,14 @@ export default function ProductForm({mode, initialData}: ProductFormProps) {
   return (
     <form
       ref={formRef}
-      onSubmit={handleSubmit(onSubmit)}
+      // eslint-disable-next-line react-hooks/refs -- react-hook-form submit handler
+      onSubmit={handleSubmit(onSubmit, onInvalidSubmit)}
       onReset={handleReset}
       className='flex flex-col h-full'
     >
       <div
         ref={scrollContainerRef}
-        className='flex-1 space-y-4 scrollbar-hide overflow-y-auto pt-5 pb-16 pr-5 -mr-5'
+        className='flex-1 space-y-4 scrollbar-hide overflow-y-auto pt-5 pb-16 px-1 '
       >
         <div className='grid grid-cols-1 md:grid-cols-1 gap-4'>
           <Controller
@@ -330,7 +342,7 @@ export default function ProductForm({mode, initialData}: ProductFormProps) {
           <FloatingLabelInput
             {...register('sizes')}
             id='product-sizes'
-            label='Sizes * (comma-separated)'
+            label='Sizes *'
             type='text'
             hasError={!!errors.sizes}
             errorMessage={errors.sizes?.message}
@@ -381,6 +393,8 @@ export default function ProductForm({mode, initialData}: ProductFormProps) {
             multiple
             accept='image/*'
             onFilesSelected={handleImageChange}
+            hasError={imageError}
+            errorMessage='At least one image is required'
           >
             <UploadIcon
               message={

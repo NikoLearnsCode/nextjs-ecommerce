@@ -1,21 +1,26 @@
 'use client';
 
-import {useState, useEffect} from 'react';
+import {useCallback, useSyncExternalStore} from 'react';
+
+function getServerSnapshot() {
+  return false;
+}
 
 export function useMediaQuery(query: string) {
-  const [matches, setMatches] = useState(false);
+  // Stable identity per query - otherwise useSyncExternalStore
+  // unsubscribes/resubscribes the matchMedia listener on every render.
+  const subscribe = useCallback(
+    (onStoreChange: () => void) => {
+      const media = window.matchMedia(query);
+      media.addEventListener('change', onStoreChange);
+      return () => media.removeEventListener('change', onStoreChange);
+    },
+    [query],
+  );
 
-  useEffect(() => {
-    const media = window.matchMedia(query);
-    if (media.matches !== matches) {
-      setMatches(media.matches);
-    }
-    const listener = () => {
-      setMatches(media.matches);
-    };
-    media.addEventListener('change', listener);
-    return () => media.removeEventListener('change', listener);
-  }, [matches, query]);
-
-  return matches;
+  return useSyncExternalStore(
+    subscribe,
+    () => window.matchMedia(query).matches,
+    getServerSnapshot,
+  );
 }

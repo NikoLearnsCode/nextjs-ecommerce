@@ -25,7 +25,8 @@ There is no Docker Compose or separate API/worker process in this repo.
 See `README.md` for the full flow. Quick reference:
 
 - **Dev server:** `npm run dev`
-- **Typecheck:** `npx tsc --noEmit` (no `lint` script in `package.json`; ESLint is a dependency only)
+- **Lint:** `npm run lint`
+- **Typecheck:** `npx tsc --noEmit`
 - **Production build:** `npm run build` then `npm run start`
 - **DB browser (optional):** `npm run db:studio`
 

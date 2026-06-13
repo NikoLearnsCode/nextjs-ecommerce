@@ -110,7 +110,7 @@ export default function FormWrapper({onClose}: {onClose: () => void}) {
     <ModalDialog
       id={ADMIN_FORM_DIALOG_ID}
       variant='right'
-      className='w-full max-w-full sm:max-w-[640px]'
+      className='w-full  max-w-full sm:max-w-[640px]'
       onClose={onClose}
       aria-labelledby={titleId}
     >
@@ -127,14 +127,14 @@ export default function FormWrapper({onClose}: {onClose: () => void}) {
             dialogId={ADMIN_FORM_DIALOG_ID}
             size={16}
             strokeWidth={2}
-            className='px-7 py-3'
+            className='pl-6 pr-5 py-3 mr-2'
             aria-label='Close form'
           />
         </div>
 
         <div
           key={displayed?.session}
-          className='px-4 sm:px-6 flex-1 overflow-y-auto'
+          className='px-3 sm:px-5 flex-1 overflow-y-auto'
         >
           {renderForm()}
         </div>

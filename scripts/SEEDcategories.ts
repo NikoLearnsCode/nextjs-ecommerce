@@ -102,7 +102,7 @@ const categoryTreeDefinition: CategoryBlueprint[] = [
           {title: 'Knitwear', slug: 'knitwear', type: 'SUB-CATEGORY'},
           {
             title: 'Jackets & coats',
-            slug: 'jackets-coats',
+            slug: 'jackets',
             type: 'SUB-CATEGORY',
           },
           {title: 'Pants', slug: 'pants', type: 'SUB-CATEGORY'},

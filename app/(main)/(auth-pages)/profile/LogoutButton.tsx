@@ -6,8 +6,7 @@ import {Button} from '@/components/shared/ui/button';
 import {Loader2} from 'lucide-react';
 import {twMerge} from 'tailwind-merge';
 
-interface LogoutButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {}
+type LogoutButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
 
 export default function LogoutButton({className, ...props}: LogoutButtonProps) {
   const [isPending, setIsPending] = useState(false);

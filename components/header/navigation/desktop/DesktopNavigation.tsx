@@ -79,16 +79,15 @@ export function DesktopNavigation({navLinks}: DesktopNavigationProps) {
                 </span>
               </Link>
 
-              <span
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleKeyOpen(index);
-                }}
-                tabIndex={0}
+              <button
+                type='button'
+                onClick={() => handleKeyOpen(index)}
+                aria-expanded={isCurrentlyOpen}
                 className='inline-flex w-3.5 justify-center items-center focus:text-black opacity-0 focus:opacity-100 text-white cursor-default'
                 aria-label={`Open ${link.title} menu`}
               >
                 ˅
-              </span>
+              </button>
             </li>
           );
         })}

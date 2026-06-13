@@ -2,7 +2,7 @@
 
 // UNUSED — intended for InfiniteProductList (not wired up yet)
 
-import {useEffect, useRef} from 'react';
+import {useEffect, useRef, useCallback} from 'react';
 import {usePathname, useSearchParams} from 'next/navigation';
 
 
@@ -14,8 +14,7 @@ export function useScrollRestoration() {
 
   const scrollKey = `scroll:${pathname}${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
 
- 
-  const saveScrollPosition = () => {
+  const saveScrollPosition = useCallback(() => {
     try {
       const scrollY = window.scrollY;
       if (scrollY > 0) {
@@ -27,7 +26,7 @@ export function useScrollRestoration() {
     } catch (error) {
       console.warn('Failed to save scroll position:', error);
     }
-  };
+  }, [scrollKey]);
 
 
   const restoreScrollPosition = () => {
@@ -156,7 +155,7 @@ export function useScrollRestoration() {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [scrollKey]);
+  }, [scrollKey, saveScrollPosition]);
 
   useEffect(() => {
     hasRestoredRef.current = false;

@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, useMemo} from 'react';
+import {useState, useMemo, useCallback} from 'react';
 import {FiEdit, FiTrash} from 'react-icons/fi';
 import AdminTable from '../shared/ReusableTable.tsx';
 import {CategoryWithChildren} from '@/lib/types/category-types.js';
@@ -42,7 +42,7 @@ export default function CategoryManager({categories}: CategoryManagerProps) {
     }
   );
 
-  const toggleCategory = (categoryId: number) => {
+  const toggleCategory = useCallback((categoryId: number) => {
     setExpandedCategories((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(categoryId)) {
@@ -52,7 +52,7 @@ export default function CategoryManager({categories}: CategoryManagerProps) {
       }
       return newSet;
     });
-  };
+  }, []);
 
   const flattenedCategories = useMemo(
     () => flattenCategoriesRecursive(categories, expandedCategories),
@@ -132,13 +132,13 @@ export default function CategoryManager({categories}: CategoryManagerProps) {
           onClick={expandAll}
           className='p-2 text-xs cursor-pointer hover:underline text-gray-600 font-medium'
         >
-          Expandera
+          Expand
         </button>
         <button
           onClick={collapseAll}
           className='p-2 text-xs cursor-pointer hover:underline text-gray-600 font-medium'
         >
-          Kollapsa
+          Collapse
         </button>
       </div>
 

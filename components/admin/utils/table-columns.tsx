@@ -155,7 +155,7 @@ export const createCategoryColumns = (
     cell: (category: FlattenedCategory) => cellRenderers.text(category.slug),
   },
   {
-    header: 'Sort order',
+    header: 'Sort',
     cell: (category: FlattenedCategory) =>
       cellRenderers.text(category.displayOrder),
   },

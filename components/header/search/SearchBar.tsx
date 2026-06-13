@@ -20,6 +20,16 @@ export default function SearchBar() {
   const wasSearchExpandedRef = useRef(false);
   const {handleSaveSearch} = useNavigatedHistory();
 
+  // Clear the query whenever the search collapses, no matter who collapsed it
+  // (Escape, submit, or external collapseSearch() calls from other header buttons).
+  const [wasExpanded, setWasExpanded] = useState(isSearchExpanded);
+  if (wasExpanded !== isSearchExpanded) {
+    setWasExpanded(isSearchExpanded);
+    if (!isSearchExpanded) {
+      setSearchQuery('');
+    }
+  }
+
   useEffect(() => {
     if (wasSearchExpandedRef.current && !isSearchExpanded) {
       const id = requestAnimationFrame(() => {
@@ -30,12 +40,6 @@ export default function SearchBar() {
     wasSearchExpandedRef.current = isSearchExpanded;
   }, [isSearchExpanded]);
 
-  useEffect(() => {
-    if (!isSearchExpanded && searchQuery !== '') {
-      setSearchQuery('');
-    }
-  }, [isSearchExpanded, searchQuery]);
-
   useKeyboardShortcut('Escape', collapseSearch, isSearchExpanded);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -45,7 +49,6 @@ export default function SearchBar() {
       handleSaveSearch(trimmedQuery);
       router.push(`/search?q=${encodeURIComponent(trimmedQuery)}`);
       collapseSearch();
-      setSearchQuery('');
     }
   };
 

@@ -138,7 +138,7 @@ const baseProducts = [
     gender: 'women',
     color: 'Navy',
     slug: 'oversized-coat',
-    category: 'jackets-coats',
+    category: 'jackets',
     specs: [
       'Oversized fit',
       'Material: 100% polyester',
@@ -235,7 +235,7 @@ async function getExistingProductsInfo() {
 }
 
 const createDuplicateWithUniqueIds = (
-  product: any,
+  product: (typeof baseProducts)[number],
   index: number,
   existingSlugs: string[],
 ) => {

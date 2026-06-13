@@ -26,19 +26,20 @@ const AdminSearch: React.FC<AdminSearchProps> = ({
   const currentValue = searchParams.get(searchParam) || '';
   const [localValue, setLocalValue] = useState<string>(currentValue);
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [lastSyncedValue, setLastSyncedValue] = useState(currentValue);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
+  if (currentValue !== lastSyncedValue) {
+    setLastSyncedValue(currentValue);
     setLocalValue(currentValue);
-    if (
-      !currentValue.trim() &&
-      document.activeElement !== searchInputRef.current
-    ) {
+    // Don't collapse while the user is typing in the input
+    if (!currentValue.trim() && !isInputFocused) {
       setIsExpanded(false);
     }
-  }, [currentValue]);
+  }
 
   useEffect(() => {
     return () => {
@@ -80,7 +81,13 @@ const AdminSearch: React.FC<AdminSearchProps> = ({
     setIsExpanded(true);
   };
 
+  const handleFocus = () => {
+    setIsInputFocused(true);
+    setIsExpanded(true);
+  };
+
   const handleBlur = () => {
+    setIsInputFocused(false);
     setTimeout(() => {
       if (!localValue.trim()) {
         setIsExpanded(false);
@@ -101,7 +108,7 @@ const AdminSearch: React.FC<AdminSearchProps> = ({
     <div className={`w-full sm:w-auto mb-6 ml-1 ${className}`}>
       <div
         data-expanded={isExpanded}
-        className='relative flex items-center transition-all duration-300 ease-in-out w-32 data-[expanded=true]:w-full sm:data-[expanded=true]:w-96'
+        className='relative flex items-center transition-all duration-300 ease-in-out w-32 data-[expanded=true]:w-56 sm:data-[expanded=true]:w-56'
       >
         <input
           ref={searchInputRef}
@@ -109,7 +116,7 @@ const AdminSearch: React.FC<AdminSearchProps> = ({
           value={localValue}
           onChange={handleInput}
           onClick={expandSearch}
-          onFocus={expandSearch}
+          onFocus={handleFocus}
           onBlur={handleBlur}
           placeholder={placeholderText}
           maxLength={maxLength}
@@ -121,13 +128,13 @@ const AdminSearch: React.FC<AdminSearchProps> = ({
             transition-all duration-300 ease-in-out
            focus:outline-none
             cursor-pointer
-            ${isExpanded ? 'is-expanded border-gray-400 cursor-text' : 'border-transparent   '}
+            ${isExpanded ? 'is-expanded border-gray-700 cursor-text' : 'border-transparent   '}
           `}
         />
         {isExpanded && (
           <MotionCloseX
             onClick={handleClear}
-            className='absolute -right-3 z-10 px-4 py-3 rounded-sm text-gray-500 hover:text-red-900'
+            className='absolute -right-4 z-10 px-4 py-2 rounded-sm text-gray-700 hover:text-red-900'
           />
         )}
       </div>

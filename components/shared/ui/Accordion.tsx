@@ -104,6 +104,12 @@ type AccordionItemProps = {
 
 const AccordionItemContext = createContext<{isOpen: boolean} | null>(null);
 
+type AccordionItemChildProps = {
+  value?: string;
+  headerId?: string;
+  contentId?: string;
+};
+
 function AccordionItem({children, value, className = ''}: AccordionItemProps) {
   const {openValues} = useAccordion();
   const isOpen = openValues.includes(value);
@@ -122,7 +128,7 @@ function AccordionItem({children, value, className = ''}: AccordionItemProps) {
               value,
               headerId,
               contentId,
-            } as any);
+            } as AccordionItemChildProps);
           }
           return child;
         })}

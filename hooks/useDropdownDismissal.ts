@@ -18,7 +18,10 @@ export function useDropdownDismissal({
   triggerRef,
 }: UseDropdownDismissalOptions) {
   const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (!isOpen) return;

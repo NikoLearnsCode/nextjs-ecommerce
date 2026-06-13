@@ -105,12 +105,19 @@ export function DesktopDropdown({
                   className='pl-1 pr-12 pt-6 h-full overflow-y-auto'
                   data-dropdown-column={columnIndex}
                   style={{minWidth: COLUMN_MIN_WIDTH}}
-                  initial={columnIndex === 0 ? false : {opacity: 0, x: -10}}
+                  initial={columnIndex === 0 ? false : {opacity: 0, x: -5}}
                   animate={{opacity: 1, x: 0}}
                   transition={
                     columnIndex === 0
                       ? {duration: 0}
-                      : {duration: 0.3, ease: [0.215, 0.61, 0.333, 1]}
+                      : {
+                          x: {duration: 0.3, ease: [0.215, 0.61, 0.333, 1]},
+                          opacity: {
+                            duration: 0.4,
+                            ease: 'easeInOut',
+                            delay: 0.05,
+                          },
+                        }
                   }
                 >
                   <ul className='flex flex-col text-nowrap'>

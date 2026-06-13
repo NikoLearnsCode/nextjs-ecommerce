@@ -1,6 +1,6 @@
 'use client';
 
-import {createContext, useContext, useEffect, useState} from 'react';
+import {createContext, useContext, useState} from 'react';
 import {Category, CategoryWithChildren} from '@/lib/types/category-types';
 import {Product} from '@/lib/types/db-types';
 import {deleteProduct as deleteProductAction} from '@/actions/admin/admin.products.actions';

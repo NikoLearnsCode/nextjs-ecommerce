@@ -70,9 +70,13 @@ const CustomDateInput = React.forwardRef<
       return isNaN(date.getTime()) ? null : date;
     };
 
-    const handleContainerClick = () => {
-      if (!disabled && elementRef.current) {
-        elementRef.current.showPicker?.();
+    const openPicker = () => {
+      if (disabled) return;
+      try {
+        elementRef.current?.showPicker?.();
+      } catch {
+        // showPicker() can throw if unsupported or already open; the input
+        // remains fully editable via the keyboard, so this is safe to ignore.
       }
     };
 
@@ -82,12 +86,13 @@ const CustomDateInput = React.forwardRef<
       <div className={cn('relative', className)}>
         <div
           className={cn(
-            'relative w-full border rounded-xs transition-all duration-200 cursor-pointer',
+            'relative w-full px-3 border rounded-xs transition-all duration-200',
             'hover:border-gray-500',
-            disabled && 'cursor-not-allowed opacity-50',
+            // Visible keyboard focus indicator (input keeps outline-none).
+            ' has-[input:focus-visible]:ring-1 has-[input:focus-visible]:ring-gray-500',
+            disabled && 'opacity-50',
             hasError ? 'border-destructive' : 'border-gray-400/70'
           )}
-          onClick={handleContainerClick}
         >
           <input
             id={id}
@@ -96,16 +101,18 @@ const CustomDateInput = React.forwardRef<
             ref={combinedRef}
             value={formatDateForInput(value || null)}
             disabled={disabled}
+            aria-invalid={hasError || undefined}
             className={cn(
-              'w-full bg-transparent text-gray-500 font-medium px-3 h-12.5 pt-4.5 text-sm pr-12',
-              'outline-none',
+              'w-full bg-transparent text-gray-500 font-medium h-12.5 pt-3.5 text-sm',
+              'outline-none cursor-pointer',
               'disabled:cursor-not-allowed',
-              '[&::-webkit-calendar-picker-indicator]:opacity-0',
-              '[&::-webkit-calendar-picker-indicator]:absolute',
-              '[&::-webkit-calendar-picker-indicator]:inset-0',
-              '[&::-webkit-calendar-picker-indicator]:cursor-pointer'
+              // Hide the native picker indicator entirely: at opacity-0 it stays
+              // in the tab order as an invisible "ghost" tab stop between the
+              // segments and the icon. The button below opens the picker instead.
+              '[&::-webkit-calendar-picker-indicator]:hidden'
             )}
             placeholder={label}
+            onClick={openPicker}
             onFocus={onFocus}
             onBlur={onBlur}
             onChange={(e) => {
@@ -116,16 +123,27 @@ const CustomDateInput = React.forwardRef<
 
           <input type='hidden' name={name} value={isoDateString} />
 
-          <div className='absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none'>
+          <button
+            type='button'
+            aria-label='Open calendar'
+            onClick={openPicker}
+            disabled={disabled}
+            className={cn(
+              'absolute right-3 top-1/2 -translate-y-1/2 rounded-xs outline-none',
+              'focus-visible:ring-2 focus-visible:ring-black',
+              'disabled:cursor-not-allowed'
+            )}
+          >
             <CalendarCheck
               strokeWidth={1.25}
               size={26}
+              aria-hidden='true'
               className={cn(
                 'text-gray-500 transition-colors',
                 hasError && 'text-destructive'
               )}
             />
-          </div>
+          </button>
 
           <label
             htmlFor={id}

@@ -64,7 +64,7 @@ export default function OrdersClientContent({
                   title={formattedDate}
                   titelDivClassName='pr-2 lg:pr-0'
                   titleClassName='text-sm  text-gray-600 px-4 lg:px-0 font-semibold'
-                  renderItem={(item, _index) => (
+                  renderItem={(item) => (
                     <div className='aspect-[7/9]'>
                       <Link
                         href={`/profile/orders/${order.id}`}

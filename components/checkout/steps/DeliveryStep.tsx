@@ -1,6 +1,6 @@
 'use client';
 
-import {useForm} from 'react-hook-form';
+import {useForm, useWatch} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {Button} from '@/components/shared/ui/button';
 import {FloatingLabelInput} from '@/components/shared/ui/floatingLabelInput';
@@ -44,7 +44,10 @@ export default function DeliveryStep({onNext, initialData}: DeliveryStepProps) {
     },
   });
 
-  const selectedMethod = form.watch('deliveryMethod');
+  const selectedMethod = useWatch({
+    control: form.control,
+    name: 'deliveryMethod',
+  });
 
   const onSubmit = (data: DeliveryFormData) => {
     onNext(data);

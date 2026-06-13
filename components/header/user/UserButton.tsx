@@ -2,7 +2,7 @@
 
 import {User} from 'lucide-react';
 import {useAuth} from '@/hooks/useAuth';
-import {useState, useEffect, useMemo} from 'react';
+import {useSyncExternalStore, useMemo} from 'react';
 import {useHeaderSearchUi} from '@/context/HeaderSearchUiProvider';
 import {useSaveCurrentUrl} from '@/hooks/useLoginRedirect';
 import Link from 'next/link';
@@ -121,13 +121,17 @@ function UserLoggedInButton({
   );
 }
 
-export default function UserButton() {
-  const [mounted, setMounted] = useState(false);
-  const {displayUser, displayRole, loading} = useHeaderUserDisplay();
+const emptySubscribe = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+export default function UserButton() {
+  const mounted = useSyncExternalStore(
+    emptySubscribe,
+    getClientSnapshot,
+    getServerSnapshot,
+  );
+  const {displayUser, displayRole, loading} = useHeaderUserDisplay();
 
   if ((loading && !isPreviewUserDropdown) || !mounted) {
     return <UserButtonLoading />;
