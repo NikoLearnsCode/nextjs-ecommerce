@@ -5,14 +5,18 @@ import {
   useCallback,
   useContext,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
+  type RefObject,
 } from 'react';
 
 type HeaderSearchUiContextValue = {
   isSearchExpanded: boolean;
   setIsSearchExpanded: (value: boolean) => void;
   collapseSearch: () => void;
+  // Shared so the focus trap can scope the input + dropdown panel together.
+  searchFormRef: RefObject<HTMLFormElement | null>;
 };
 
 const HeaderSearchUiContext = createContext<HeaderSearchUiContextValue | null>(
@@ -22,9 +26,10 @@ const HeaderSearchUiContext = createContext<HeaderSearchUiContextValue | null>(
 export function HeaderSearchUiProvider({children}: {children: ReactNode}) {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const collapseSearch = useCallback(() => setIsSearchExpanded(false), []);
+  const searchFormRef = useRef<HTMLFormElement>(null);
 
   const value = useMemo(
-    () => ({isSearchExpanded, setIsSearchExpanded, collapseSearch}),
+    () => ({isSearchExpanded, setIsSearchExpanded, collapseSearch, searchFormRef}),
     [isSearchExpanded, collapseSearch],
   );
 

@@ -4,6 +4,9 @@ declare global {
   }
 }
 
+// Id of the page <main> landmark; focus target on navigation.
+export const MAIN_CONTENT_ID = 'main-content';
+
 const NAV_KEYS = new Set([
   'Tab',
   'ArrowUp',

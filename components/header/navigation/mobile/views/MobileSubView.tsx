@@ -78,10 +78,10 @@ export function MobileSubView({
         <button
           onClick={onGoBack}
           type='button'
-          className='text-xs font-medium shrink-0 pl-1 h-10 w-9  transition flex items-center '
+          className='text-xs font-medium shrink-0 py-2.5 pl-4 pr-3.5 mr-0.5  transition flex items-center '
           aria-label='Go back'
         >
-          <ArrowLeft strokeWidth={1.25} className='w-5 h-5 text-gray-600' />
+          <ArrowLeft strokeWidth={1} className='w-5 h-5 text-gray-700' />
         </button>
 
         <nav

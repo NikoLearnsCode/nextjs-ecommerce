@@ -45,7 +45,7 @@ export function DesktopNavigation({navLinks}: DesktopNavigationProps) {
   }, [navLinks]);
 
   return (
-    <nav ref={navRef} className='uppercase'>
+    <nav ref={navRef} className='uppercase' aria-label='Primary'>
       <ul
         ref={navTabsRef}
         className='flex items-center gap-2 justify-center relative z-50'
@@ -82,7 +82,9 @@ export function DesktopNavigation({navLinks}: DesktopNavigationProps) {
               <button
                 type='button'
                 onClick={() => handleKeyOpen(index)}
+                aria-haspopup='dialog'
                 aria-expanded={isCurrentlyOpen}
+                aria-controls={isCurrentlyOpen ? 'desktop-nav-dialog' : undefined}
                 className='inline-flex w-3.5 justify-center items-center focus:text-black opacity-0 focus:opacity-100 text-white cursor-default'
                 aria-label={`Open ${link.title} menu`}
               >
@@ -99,6 +101,7 @@ export function DesktopNavigation({navLinks}: DesktopNavigationProps) {
             columnsToRender={columnsToRender}
             activePath={activePath}
             navTabsWidth={navTabsWidth}
+            ariaLabel={`${navLinks[activePath[0]]?.title} menu`}
             onClose={closeDropdown}
             onSubMenuHover={handleSubMenuHover}
             onClick={handleClick}

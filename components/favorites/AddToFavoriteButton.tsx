@@ -25,6 +25,7 @@ export default function FavoriteButton({
   const handleToggleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (isUpdating) return;
     try {
       await toggleFavoriteItem(product.id);
     } catch (error) {
@@ -44,7 +45,8 @@ export default function FavoriteButton({
   return (
     <button
       onClick={handleToggleFavorite}
-      disabled={isUpdating}
+      // aria-disabled, not disabled, so the button keeps focus while toggling.
+      aria-disabled={isUpdating}
       data-variant={variant}
       aria-label={
         productIsFavorite
@@ -52,7 +54,7 @@ export default function FavoriteButton({
           : `Add ${product.name} to favorites`
       }
       className={twMerge(
-        'cursor-pointer pl-3 inline-flex items-center justify-center transition-all duration-200 disabled:opacity-50',
+        'cursor-pointer pl-3 inline-flex items-center justify-center transition-all duration-200 aria-disabled:opacity-50',
         className,
       )}
     >

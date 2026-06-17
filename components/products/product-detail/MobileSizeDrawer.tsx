@@ -1,14 +1,12 @@
 'use client';
 
-import {AnimatePresence} from 'framer-motion';
-import {twMerge} from 'tailwind-merge';
-import {
-  MotionDropdown,
-  MotionOverlay,
-  MotionCloseX,
-} from '@/components/shared/AnimatedSidebar';
+import {useEffect, useId} from 'react';
+import {ModalDialog} from '@/components/shared/modal/ModalDialog';
+import {ModalCloseButton} from '@/components/shared/modal/ModalCloseButton';
+import {FocusHeading} from '@/components/shared/FocusHeading';
 import {useCart} from '@/context/CartProvider';
 import {useScrollLock} from '@/hooks/useScrollLock';
+import {focusInitialIn} from '@/lib/focus';
 import {
   CART_HEADER_POPOVER_ID,
   CART_HEADER_TRIGGER_ID,
@@ -27,12 +25,30 @@ type MobileSizeDrawerProps = {
 export default function MobileSizeDrawer({
   product,
   isOpen,
-  // selectedSize,
   onClose,
   onAddSuccess,
 }: MobileSizeDrawerProps) {
   const {addItem} = useCart();
+  const dialogId = useId();
+  const titleId = useId();
   useScrollLock(isOpen);
+
+  // Opened programmatically (add-to-cart with no size), so drive the native
+  // <dialog> from `isOpen`; user-driven closes sync back via ModalDialog.onClose.
+  useEffect(() => {
+    const dialog = document.getElementById(
+      dialogId,
+    ) as HTMLDialogElement | null;
+    if (!dialog) return;
+
+    if (isOpen) {
+      if (!dialog.open) dialog.showModal();
+      const frame = requestAnimationFrame(() => focusInitialIn(dialog));
+      return () => cancelAnimationFrame(frame);
+    }
+
+    if (dialog.open) dialog.close();
+  }, [isOpen, dialogId]);
 
   const handleSizeSelect = async (size: string) => {
     onClose();
@@ -46,43 +62,40 @@ export default function MobileSizeDrawer({
   };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          <MotionOverlay onClick={onClose} id='size-drawer-overlay' />
-          <MotionDropdown
-            position='bottom'
-            id='size-drawer'
-            className='max-h-[70svh] flex flex-col'
+    <ModalDialog
+      id={dialogId}
+      variant='bottom'
+      onClose={onClose}
+      className='[--modal-bottom-height:auto] [--modal-bottom-max-height:70svh] flex flex-col'
+      aria-labelledby={titleId}
+    >
+      <div className='flex items-center justify-between pl-4 pr-1 py-2 border-b border-gray-200'>
+        <FocusHeading
+          id={titleId}
+          className='text-xs font-semibold uppercase tracking-wide'
+        >
+          Choose your size
+        </FocusHeading>
+        <ModalCloseButton
+          dialogId={dialogId}
+          size={14}
+          strokeWidth={1.5}
+          aria-label='Close size picker'
+          className='px-4 py-2'
+        />
+      </div>
+      <div className='overflow-y-auto flex-1'>
+        {product.sizes.map((size) => (
+          <button
+            key={size}
+            type='button'
+            className='w-full text-left first:mt-1 px-5 py-3.5 my-0.5 text-xs font-medium border-b last:border-b-0 last:pb-8 border-gray-200 cursor-pointer'
+            onClick={() => handleSizeSelect(size)}
           >
-            <div className='flex items-center justify-between px-4 py-4 border-b border-gray-100'>
-              <h2 className='text-xs font-semibold uppercase tracking-wide'>
-                Choose your size
-              </h2>
-              <MotionCloseX
-                onClick={onClose}
-                size={14}
-                strokeWidth={1.5}
-                aria-label='Close size picker'
-              />
-            </div>
-            <div className='overflow-y-auto flex-1 '>
-              {product.sizes.map((size) => (
-                <button
-                  key={size}
-                  type='button'
-                  className={twMerge(
-                    'w-full text-left px-4 py-4 text-xs font-medium border-b last:border-b-0 last:pb-8 border-gray-200 cursor-pointer',
-                  )}
-                  onClick={() => handleSizeSelect(size)}
-                >
-                  {size}
-                </button>
-              ))}
-            </div>
-          </MotionDropdown>
-        </>
-      )}
-    </AnimatePresence>
+            {size}
+          </button>
+        ))}
+      </div>
+    </ModalDialog>
   );
 }

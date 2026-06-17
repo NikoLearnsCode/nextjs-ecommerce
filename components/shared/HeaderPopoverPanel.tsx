@@ -16,6 +16,7 @@ export function openHeaderPopover(triggerId: string, popoverId: string) {
   const popover = document.getElementById(popoverId);
   if (popover?.matches(':popover-open')) return;
   document.getElementById(triggerId)?.click();
+  document.getElementById(popoverId)?.focus();
 }
 
 export function hideHeaderPopover(id: string) {

@@ -10,6 +10,7 @@ import QueryProvider from '@/context/QueryProvider';
 import {auth} from '@/lib/auth';
 
 import {NavigatedHistoryProvider} from '@/context/NavigatedHistoryProvider';
+import {RouteFocusManager} from '@/components/shared/RouteFocusManager';
 import {Toaster} from 'sonner';
 import {Analytics} from '@vercel/analytics/next';
 import {SpeedInsights} from '@vercel/speed-insights/next';
@@ -59,6 +60,7 @@ export default async function RootLayout({
             </CartProvider>
           </AuthProvider>
         </QueryProvider>
+        <RouteFocusManager />
         <Toaster />
         <Analytics />
         <SpeedInsights />

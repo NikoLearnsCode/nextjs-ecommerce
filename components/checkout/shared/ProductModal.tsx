@@ -41,7 +41,7 @@ export default function ProductModal({
       className={
         isDesktop
           ? '[--modal-display:flex] md:max-w-[450px] flex flex-col overflow-hidden pb-4'
-          : '[--modal-display:flex] [--modal-bottom-max-height:80dvh] w-full flex flex-col overflow-hidden pb-4'
+          : '[--modal-display:flex] [--modal-bottom-height:auto] [--modal-bottom-max-height:80dvh] w-full flex flex-col overflow-hidden pb-4'
       }
       aria-labelledby='checkout-product-modal-title'
     >

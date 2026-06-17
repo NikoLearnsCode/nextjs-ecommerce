@@ -12,14 +12,15 @@ interface MotionCloseXProps {
   withTranslate?: boolean;
   withDelay?: boolean;
   'aria-label'?: string;
+  tabIndex?: number;
 }
-
 export const MotionCloseX = ({
   onClick,
   className = '',
   size = 15,
   strokeWidth = 1.5,
   withTranslate = false,
+  tabIndex = 0,
   'aria-label': ariaLabel = 'Close menu',
 }: MotionCloseXProps) => {
   return (
@@ -28,6 +29,7 @@ export const MotionCloseX = ({
       onClick={onClick}
       className={`cursor-pointer z-50 ${className}`}
       aria-label={ariaLabel}
+      tabIndex={tabIndex}
       initial={withTranslate ? {opacity: 0, rotate: 0, translateX: -200} : {}}
       animate={withTranslate ? {opacity: 1, rotate: 0, translateX: 0} : {}}
       transition={{delay: 0.15, duration: 0.3}}
@@ -42,9 +44,15 @@ interface MotionDropdownProps {
   onMouseLeave?: () => void;
   className?: string;
   id?: string;
+  // DOM id of the panel, for aria-controls on the trigger.
+  htmlId?: string;
   isMobile?: boolean;
   position?: 'right' | 'top' | 'newLeft' | 'bottom';
   style?: React.CSSProperties;
+  // Accessible name for the panel (custom dialog).
+  ariaLabel?: string;
+  // Id of a heading that labels the panel; takes precedence over ariaLabel.
+  ariaLabelledby?: string;
 }
 
 export const MotionDropdown = forwardRef<HTMLDivElement, MotionDropdownProps>(
@@ -55,8 +63,11 @@ export const MotionDropdown = forwardRef<HTMLDivElement, MotionDropdownProps>(
       className = '',
       isMobile = false,
       id = 'dropdown',
+      htmlId,
       position = 'right',
       style,
+      ariaLabel,
+      ariaLabelledby,
     },
     ref,
   ) {
@@ -186,6 +197,11 @@ export const MotionDropdown = forwardRef<HTMLDivElement, MotionDropdownProps>(
     return (
       <motion.div
         ref={ref}
+        id={htmlId}
+        role='dialog'
+        aria-modal='true'
+        aria-label={ariaLabelledby ? undefined : ariaLabel}
+        aria-labelledby={ariaLabelledby}
         className={cn(
           'fixed bg-white z-40 shadow-md',
           getPositionClasses(),

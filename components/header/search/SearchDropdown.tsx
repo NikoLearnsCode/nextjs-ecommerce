@@ -152,7 +152,7 @@ function RecentlyViewedProducts({
 }
 
 export default function SearchDropdown() {
-  const {isSearchExpanded, collapseSearch} = useHeaderSearchUi();
+  const {isSearchExpanded, collapseSearch, searchFormRef} = useHeaderSearchUi();
   const searchPanelRef = useRef<HTMLDivElement>(null);
   const {
     navigatedProducts,
@@ -163,9 +163,13 @@ export default function SearchDropdown() {
 
   const isDesktop = useMediaQuery('(min-width: 1024px)');
 
-  // Return focus is handled in SearchBar — the trigger unmounts on expand so the
-  // trap's "previous focus" is often the input or body, not the search icon.
-  useFocusTrap(searchPanelRef, isSearchExpanded, {
+  // Trap spans input (SearchBar) + panel as one scope, input first. autoFocus
+  // off so the input keeps initial focus; return-focus handled in SearchBar.
+  const focusScope = useMemo(
+    () => [searchFormRef, searchPanelRef],
+    [searchFormRef],
+  );
+  useFocusTrap(focusScope, isSearchExpanded, {
     returnFocusOnDeactivate: false,
     autoFocus: false,
   });
@@ -188,6 +192,7 @@ export default function SearchDropdown() {
             ref={searchPanelRef}
             key='top-menu'
             position='top'
+            ariaLabel='Search'
             className='overflow-y-auto overscroll-y-none pt-8 pb-24 lg:pt-6 lg:pb-10 h-full lg:h-auto bg-white shadow-none'
           >
             {/* Close button inside the trap so keyboard users can always

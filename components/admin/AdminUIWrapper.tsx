@@ -4,6 +4,7 @@ import FormWrapper from '@/components/admin/AdminFormWrapper';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
 import {useAdmin} from '@/context/AdminProvider';
+import {MAIN_CONTENT_ID} from '@/lib/focus';
 
 interface AdminUIWrapperProps {
   children: React.ReactNode;
@@ -29,7 +30,9 @@ export default function AdminUIWrapper({children}: AdminUIWrapperProps) {
     <div className='flex h-screen '>
       <AdminSidebar />
       <main
-        className={`flex-1 px-8 -mt-[56px] pb-16 transition-all ease-in-out duration-200 ${
+        id={MAIN_CONTENT_ID}
+        tabIndex={-1}
+        className={`flex-1 px-8 -mt-[56px] pb-16 outline-none transition-all ease-in-out duration-200 ${
           isCollapsed ? 'ml-15' : 'ml-45'
         }`}
       >

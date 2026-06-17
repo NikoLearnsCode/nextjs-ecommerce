@@ -16,6 +16,7 @@ interface DesktopDropdownProps {
   onClose: () => void;
   onSubMenuHover: (level: number, index: number) => void;
   onClick: () => void;
+  ariaLabel?: string;
 }
 
 export function DesktopDropdown({
@@ -25,6 +26,7 @@ export function DesktopDropdown({
   onClose,
   onSubMenuHover,
   onClick,
+  ariaLabel,
 }: DesktopDropdownProps) {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const columnsRef = useRef<HTMLDivElement>(null);
@@ -76,6 +78,11 @@ export function DesktopDropdown({
       <motion.div
         key='desktop-dropdown'
         ref={dropdownRef}
+        id='desktop-nav-dialog'
+        role='dialog'
+        // No aria-modal: the focus trap spans the nav tabs (outside this
+        // element), which must stay perceivable to AT.
+        aria-label={ariaLabel}
         onMouseLeave={onClose}
         className='fixed left-0 top-0 h-full flex flex-col bg-white z-40  uppercase shadow-none'
         initial={{clipPath: 'inset(0% 100% 0% 0%)'}}

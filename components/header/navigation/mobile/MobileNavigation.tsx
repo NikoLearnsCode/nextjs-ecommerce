@@ -37,8 +37,12 @@ export function MobileNavigation({navLinks}: MobileNavigationProps) {
   useFocusTrap(sidebarRef, isMenuOpen);
 
   return (
-    <nav className='relative uppercase'>
-      <MobileMenuButton isOpen={isMenuOpen} onClick={toggleMenu} />
+    <nav className='relative uppercase' aria-label='Mobile'>
+      <MobileMenuButton
+        isOpen={isMenuOpen}
+        onClick={toggleMenu}
+        controlsId='mobile-nav-dialog'
+      />
 
       <AnimatePresence>
         {isMenuOpen && (
@@ -53,7 +57,9 @@ export function MobileNavigation({navLinks}: MobileNavigationProps) {
               ref={sidebarRef}
               position='newLeft'
               key='mobile-dropdown'
+              htmlId='mobile-nav-dialog'
               isMobile={true}
+              ariaLabel='Navigation menu'
               className='overflow-hidden'
             >
               <div className='relative h-full overflow-clip'>

@@ -8,12 +8,13 @@ import SearchBar from './search/SearchBar';
 import UserButton from './user/UserButton';
 import UserDropdown from './user/UserDropdown';
 import HeaderFavoritesButton from './HeaderFavoritesButton';
-import HeaderCartDropdown from './cart/CartDropdown';
 import SearchDropdown from './search/SearchDropdown';
 import {NavLink} from '@/lib/types/category-types';
 import Navigation from './navigation/Navigation';
 import Logo from '../shared/Logo';
 import {useScrollLock} from '@/hooks/useScrollLock';
+import { CartDropdownPanel } from './cart/CartDropdownPanel';
+import { CartButton } from './cart/CartButton';
 
 function HeaderInner({navLinks}: {navLinks: NavLink[]}) {
   const {isSearchExpanded} = useHeaderSearchUi();
@@ -38,10 +39,17 @@ function HeaderInner({navLinks}: {navLinks: NavLink[]}) {
           }`}
         >
           <SearchBar />
+          {/* inert keeps these out of tab order + a11y tree while search is open. */}
+          <div
+            className='contents'
+            inert={isSearchExpanded ? true : undefined}
+          >
             <UserButton />
             <UserDropdown />
-          <HeaderFavoritesButton />
-          <HeaderCartDropdown />
+            <HeaderFavoritesButton />
+            <CartButton />
+            <CartDropdownPanel />
+          </div>
         </div>
       </div>
 
