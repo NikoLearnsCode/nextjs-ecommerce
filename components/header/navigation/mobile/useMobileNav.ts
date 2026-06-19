@@ -3,7 +3,7 @@ import {usePathname} from 'next/navigation';
 import {NavLink} from '@/lib/types/category-types';
 import {useScrollLock} from '@/hooks/useScrollLock';
 import {useKeyboardShortcut} from '@/hooks/useKeyboardShortcut';
-import {findInitialCategory} from './mobileUtils';
+import {findActiveCategoryIndex} from '../shared/navUtils';
 
 /**
  * Mobile navigation state and handlers (stack, direction, menu open).
@@ -18,7 +18,7 @@ export function useMobileNav(navLinks: NavLink[]) {
 
   // Active top-level tab index
   const [activeCategoryIndex, setActiveCategoryIndex] = useState(
-    findInitialCategory(navLinks, pathname)
+    findActiveCategoryIndex(navLinks, pathname)
   );
 
   // Breadcrumb stack — e.g. [Women, Jackets] means Jackets under Women
@@ -33,7 +33,7 @@ export function useMobileNav(navLinks: NavLink[]) {
   const [lastPathname, setLastPathname] = useState(pathname);
   if (pathname !== lastPathname) {
     setLastPathname(pathname);
-    setActiveCategoryIndex(findInitialCategory(navLinks, pathname));
+    setActiveCategoryIndex(findActiveCategoryIndex(navLinks, pathname));
     setNavigationStack([]);
   }
 
@@ -83,10 +83,7 @@ export function useMobileNav(navLinks: NavLink[]) {
     navigationDirection,
 
     isAtMainLevel: navigationStack.length === 0,
-    currentLevel:
-      navigationStack.length > 0
-        ? navigationStack[navigationStack.length - 1]
-        : null,
+    currentLevel: navigationStack.at(-1) ?? null,
 
     toggleMenu,
     closeMenu,

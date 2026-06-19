@@ -40,7 +40,7 @@ function PopularSearches({
           <li key={search} className='min-w-0 max-w-full'>
             <Link
               href={`/search?q=${encodeURIComponent(search)}`}
-              className='block min-w-0 max-w-full text-gray-600 font-medium text-[11px] hover:border-gray-600 border-b pb-0.5 uppercase border-transparent transition-colors duration-200 line-clamp-2 [overflow-wrap:anywhere]'
+              className='block min-w-0 max-w-full text-gray-600 font-medium text-[11px] hover:border-gray-600 border-b  uppercase border-transparent transition-colors duration-150 line-clamp-2 [overflow-wrap:anywhere]'
               onClick={() => onSelectSearch(search)}
             >
               {search}
@@ -75,13 +75,13 @@ function SearchHistorySection({
         </Button>
       </div>
 
-      <ul className='flex flex-wrap gap-3 lg:pr-10 '>
+      <ul className='flex flex-wrap gap-3.5 lg:pr-10 '>
         {searchHistory.map((term, index) => (
           <li key={`${term}-${index}`} className='min-w-0 max-w-full'>
             <Link
               href={`/search?q=${encodeURIComponent(term)}`}
               onClick={() => onSelectSearch(term)}
-              className='block min-w-0 max-w-full text-gray-600 font-medium text-[11px] hover:border-gray-600 border-b pb-0.5 uppercase border-transparent transition-colors duration-200 line-clamp-2 [overflow-wrap:anywhere]'
+              className='block min-w-0 max-w-full text-gray-600 font-medium text-[11px] hover:border-gray-600 border-b  uppercase border-transparent transition-colors duration-150 line-clamp-2 [overflow-wrap:anywhere]'
             >
               {term}
             </Link>

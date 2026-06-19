@@ -7,6 +7,7 @@ import {NavLink} from '@/lib/types/category-types';
 import {useDesktopNav} from './useDesktopNav';
 import {DesktopDropdown} from './DesktopDropdown';
 import {useFocusTrap} from '@/hooks/useFocusTrap';
+import {cn} from '@/styles/style.utils';
 
 interface DesktopNavigationProps {
   navLinks: NavLink[];
@@ -65,15 +66,14 @@ export function DesktopNavigation({navLinks}: DesktopNavigationProps) {
             >
               <Link href={link.href || ''} onClick={handleClick}>
                 <span
-                  className={`pb-0.5 ${
-                    isActive
-                      ? 'text-black border-b delay-50 border-black'
-                      : isCurrentlyOpen
-                        ? 'text-black border-b border-black hover:border-black'
-                        : isOtherOpen
-                          ? 'text-gray-500'
-                          : ''
-                  }`}
+                  // These three states are mutually exclusive.
+                  className={cn(
+                    'pb-0.5',
+                    isActive && 'text-black border-b delay-50 border-black',
+                    isCurrentlyOpen &&
+                      'text-black border-b border-black hover:border-black',
+                    isOtherOpen && 'text-gray-500',
+                  )}
                 >
                   {link.title}
                 </span>

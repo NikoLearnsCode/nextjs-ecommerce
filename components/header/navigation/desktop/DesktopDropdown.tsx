@@ -9,6 +9,15 @@ import {computeDropdownWidth, COLUMN_MIN_WIDTH} from './desktopUtils';
 import {getFocusableElements} from '@/hooks/useFocusTrap';
 import {safeFocus} from '@/lib/focus';
 
+// Column entrance: first column appears instantly, later ones fade + slide in.
+const FIRST_COLUMN_INITIAL = false;
+const LATER_COLUMN_INITIAL = {opacity: 0, x: -10};
+const FIRST_COLUMN_TRANSITION = {duration: 0};
+const LATER_COLUMN_TRANSITION = {
+  x: {duration: 0.3, ease: [0.215, 0.61, 0.333, 1]},
+  opacity: {duration: 0.4, ease: 'easeInOut', delay: 0.1},
+} as const;
+
 interface DesktopDropdownProps {
   columnsToRender: NavLink[][];
   activePath: number[];
@@ -112,19 +121,16 @@ export function DesktopDropdown({
                   className='pl-1 pr-12 pt-6 h-full overflow-y-auto'
                   data-dropdown-column={columnIndex}
                   style={{minWidth: COLUMN_MIN_WIDTH}}
-                  initial={columnIndex === 0 ? false : {opacity: 0, x: -5}}
+                  initial={
+                    columnIndex === 0
+                      ? FIRST_COLUMN_INITIAL
+                      : LATER_COLUMN_INITIAL
+                  }
                   animate={{opacity: 1, x: 0}}
                   transition={
                     columnIndex === 0
-                      ? {duration: 0}
-                      : {
-                          x: {duration: 0.3, ease: [0.215, 0.61, 0.333, 1]},
-                          opacity: {
-                            duration: 0.4,
-                            ease: 'easeInOut',
-                            delay: 0.05,
-                          },
-                        }
+                      ? FIRST_COLUMN_TRANSITION
+                      : LATER_COLUMN_TRANSITION
                   }
                 >
                   <ul className='flex flex-col text-nowrap'>

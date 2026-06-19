@@ -159,14 +159,27 @@ export default function InfiniteProductList(props: InfiniteProductListProps) {
     );
   }
 
-  const defaultHeader = (
-    <h2 className='text-sm md:text-base uppercase font-medium px-4 sm:px-8 pt-2 pb-5'>
+  const headerClassName =
+    'text-sm md:text-base uppercase font-medium px-4 sm:px-8 pt-2 pb-5';
+
+  const isFuzzy = props.initialSearchMode === 'fuzzy';
+
+  const fuzzyHeader = (
+    <h2 className={headerClassName}>
+      No exact matches for &quot;{props.query}&quot; — showing similar products
+    </h2>
+  );
+
+  const ftsHeader = (
+    <h2 className={headerClassName}>
       Search results for &quot;{props.query}&quot;
       {props.totalCount ? (
         <span className='ml-2'>({props.totalCount})</span>
       ) : null}
     </h2>
   );
+
+  const defaultHeader = isFuzzy ? fuzzyHeader : ftsHeader;
 
   return (
     <>

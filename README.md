@@ -1,6 +1,6 @@
 # Next.js Clothing Retail
 
-Full-stack demo: product catalog, search, cart, checkout, account area, favorites, and an admin section for categories, products and orders.
+A full-stack hobby project built to explore different web technologies. It features a product catalog, search, cart, checkout, account area, favorites, and an admin section for categories, products, and orders.
 
 ## Stack
 

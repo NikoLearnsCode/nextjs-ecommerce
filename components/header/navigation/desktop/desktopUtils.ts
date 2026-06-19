@@ -1,7 +1,7 @@
 import {NavLink} from '@/lib/types/category-types';
 
 // Dropdown width constants (single source of truth)
-export const COLUMN_MIN_WIDTH = 160;
+export const COLUMN_MIN_WIDTH = 180;
 const DROPDOWN_MIN_WIDTH = 350;
 const CLOSE_BUTTON_SPACE = 150;
 const CONTENT_PADDING_X = 48;
@@ -38,15 +38,9 @@ export function buildNavColumns(
       columns.push(nextChildren);
       currentChildren = nextChildren;
     } else {
-      break;  
+      break;
     }
   }
 
   return columns;
-}
-
-export function isActivePath(href: string, pathname: string): boolean {
-  if (href === '#' || !href) return false;
-  if (href === '/' && pathname === '/') return true;
-  return href !== '/' && pathname.startsWith(href);
 }

@@ -5,16 +5,12 @@ import Link from 'next/link';
 import {NavLink} from '@/lib/types/category-types';
 import {cn} from '@/styles/style.utils';
 
-export type NavLinkVariant = 'desktop' | 'sidebar';
-
 export interface NavLinkItemProps {
   link: NavLink;
   onClick: () => void;
   className?: string;
-  variant?: NavLinkVariant;
   isActive?: boolean;
   isDimmed?: boolean;
-  isSecondary?: boolean;
   /** Renders `<li className="h-12 …">` around the control; control is centered inside with padding-y */
   asListItem?: boolean;
   listItemClassName?: string;
@@ -34,33 +30,26 @@ function hasValidHref(href: NavLink['href']): href is string {
   return typeof href === 'string' && href.trim().length > 0;
 }
 
+// Shared base for every nav link control (button / link / static label).
+const BASE_LINK_CLASS =
+  'inline-flex w-fit max-w-full items-center justify-center whitespace-nowrap ' +
+  'border-b border-transparent text-xs font-semibold uppercase leading-5';
+
 function getInteractiveClassName({
-  variant,
   isActive,
   isDimmed,
-  isSecondary,
   className,
 }: {
-  variant: NavLinkVariant;
   isActive: boolean;
   isDimmed: boolean;
-  isSecondary: boolean;
   className?: string;
 }) {
-  const variantClasses: Record<NavLinkVariant, string> = {
-    desktop: 'text-xs',
-    sidebar: 'text-xs',
-  };
-
-  const isMutedInactive = !isActive && (isDimmed || isSecondary);
+  const isMutedInactive = !isActive && isDimmed;
 
   return cn(
-    'inline-flex w-fit max-w-full cursor-pointer items-center justify-center',
-    'whitespace-nowrap bg-transparent p-0 py-0.5 text-left',
-    'text-sm font-semibold uppercase leading-5',
-    'border-b border-transparent transition-colors duration-200 ease-in-out',
-    'hover:border-primary hover:text-primary',
-    variantClasses[variant],
+    BASE_LINK_CLASS,
+    'cursor-pointer bg-transparent p-0 text-left',
+    'transition-colors duration-150 ease-in-out hover:border-primary hover:text-primary',
     isActive && 'border-primary text-primary',
     isMutedInactive &&
       'text-muted-foreground hover:text-primary focus-visible:text-primary',
@@ -77,10 +66,8 @@ export function NavLinkItem({
   link,
   onClick,
   className,
-  variant = 'desktop',
   isActive = false,
   isDimmed = false,
-  isSecondary = false,
   asListItem = false,
   listItemClassName,
   onItemMouseEnter,
@@ -88,10 +75,8 @@ export function NavLinkItem({
   onSubmenuKeyOpen,
 }: NavLinkItemProps) {
   const interactiveClassName = getInteractiveClassName({
-    variant,
     isActive,
     isDimmed,
-    isSecondary,
     className,
   });
 
@@ -161,9 +146,8 @@ export function NavLinkItem({
   }
 
   const staticLabelClassName = cn(
-    'inline-flex w-fit max-w-full items-center justify-center whitespace-nowrap',
-    'cursor-default border-b border-transparent',
-    'text-sm font-semibold uppercase leading-5 text-muted-foreground text-xs',
+    BASE_LINK_CLASS,
+    'cursor-default text-muted-foreground',
     className,
   );
 

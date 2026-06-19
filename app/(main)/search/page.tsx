@@ -43,6 +43,13 @@ export default async function SearchPage({searchParams}: Props) {
       </div>
     );
   }
+  // TODO: Implement separate category-aware autocomplete/live-suggestion search
+  // 1. Implement a separate search input for category-aware suggestions.
+  // 2. Use the same search query input for the main search.
+  // 3. Add URL parameter for main category.
+  // 4. Inherit initial category from navigation context (e.g., navigating "Men" sets param and scopes suggestions to "Men").
+  // 5. Allow category overriding: If the user searches for a different main category (e.g., "Women"), update the URL param.
+  // 6. Sync URL param changes back to the main navigation to update the active UI state.
 
   return (
     <div className='w-full flex justify-center py-4'>

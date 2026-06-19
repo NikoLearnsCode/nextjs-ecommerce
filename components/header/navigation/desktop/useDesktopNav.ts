@@ -3,7 +3,8 @@ import {usePathname} from 'next/navigation';
 import {NavLink} from '@/lib/types/category-types';
 import {useScrollLock} from '@/hooks/useScrollLock';
 import {useKeyboardShortcut} from '@/hooks/useKeyboardShortcut';
-import {buildNavColumns, isActivePath} from './desktopUtils';
+import {buildNavColumns} from './desktopUtils';
+import {matchesPath} from '../shared/navUtils';
 
 /**
  * Desktop mega-menu: active path indices, hover delays, and column rendering.
@@ -94,7 +95,7 @@ export function useDesktopNav(navLinks: NavLink[]) {
   /** Whether href matches current route */
   const checkIsActivePath = useCallback(
     (href: string) => {
-      return isActivePath(href, pathname);
+      return matchesPath(href, pathname);
     },
     [pathname]
   );
