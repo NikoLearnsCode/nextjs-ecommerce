@@ -188,3 +188,12 @@ textarea:-webkit-autofill:active {
   font-size: 0.75rem;
   color: #6b7280;
 }
+
+/* Keep focusable text fields >=16px on touch devices to stop iOS auto-zoom on focus */
+@media (pointer: coarse) {
+  input:not([type='checkbox']):not([type='radio']):not([type='hidden']),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}

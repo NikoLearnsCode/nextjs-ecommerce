@@ -125,7 +125,7 @@ function RecentlyViewedProducts({
               <Image
                 src={product.image}
                 alt={product.slug}
-                quality={90}
+                quality={80}
                 tabIndex={-1}
                 fill
                 sizes='(max-width: 768px) 100vw, 50vw'
@@ -134,7 +134,7 @@ function RecentlyViewedProducts({
               <Image
                 src={product.image}
                 alt={product.slug}
-                quality={90}
+                quality={80}
                 tabIndex={-1}
                 height={50}
                 width={50}

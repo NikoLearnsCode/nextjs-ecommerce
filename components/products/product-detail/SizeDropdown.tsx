@@ -40,6 +40,8 @@ export default function SizeDropdown({
         <motion.button
           type='button'
           tabIndex={isOpen ? -1 : 0}
+          aria-hidden={isOpen}
+          aria-label={selectedSize ? `Selected size ${selectedSize}` : 'Select a size'}
           animate={{opacity: isOpen ? 0 : 1}}
           transition={{duration: 0.2}}
           style={{pointerEvents: isOpen ? 'none' : 'auto'}}

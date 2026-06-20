@@ -97,7 +97,7 @@ export default function CartCard({
               src={images[0]}
               alt={name}
               fill
-              quality={90}
+              quality={80}
               priority={imagePriority}
               fetchPriority={imagePriority ? 'high' : 'auto'}
               className='object-cover w-full h-full'

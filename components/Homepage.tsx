@@ -48,8 +48,8 @@ export default function Homepage({
                 priority={isInitial}
                 fetchPriority={isInitial ? 'high' : 'auto'}
                 loading={isInitial ? 'eager' : 'lazy'}
-                sizes='90vw'
-                quality={90}
+                sizes='80vw'
+                quality={80}
                 className={`object-cover object-top w-full h-full absolute top-0 left-0 delay-500 ${
                   currentView === category.slug ? 'opacity-100' : 'opacity-0'
                 }`}
@@ -73,7 +73,7 @@ export default function Homepage({
                 fetchPriority={isInitial ? 'high' : 'auto'}
                 loading={isInitial ? 'eager' : 'lazy'}
                 sizes='90vw'
-                quality={90}
+                quality={80}
                 className={`object-cover w-full h-full absolute transition-opacity duration-300 top-0 left-0  ${
                   currentView === category.slug ? 'opacity-100' : 'opacity-0'
                 }`}

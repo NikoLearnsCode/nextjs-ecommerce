@@ -37,8 +37,6 @@ export const viewport: Viewport = {
   themeColor: '#ffffff',
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
 };
 
 export default async function RootLayout({
@@ -49,7 +47,7 @@ export default async function RootLayout({
   const session = await auth();
 
   return (
-    <html lang='en' suppressHydrationWarning>
+    <html lang='en'>
       <body className={`${arimo.variable} font-arimo`}>
         <QueryProvider>
           <AuthProvider session={session}>
