@@ -66,7 +66,7 @@ export default function OrderConfirmation({
                     priority
                     loading='eager'
                     className='object-cover'
-                    sizes='(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, 50vw'
+                    sizes='(min-width: 768px) 33vw, 50vw'
                   />
                 </div>
 

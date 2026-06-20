@@ -2,30 +2,23 @@
 
 import Image from 'next/image';
 import AddToCartButton from '@/components/products/product-detail/AddToCartButton';
-import type {ProductDetail, CarouselCard} from '@/lib/types/db-types';
-import {useState} from 'react';
-import MobileSizeDrawer from './MobileSizeDrawer';
+import type {ProductDetail} from '@/lib/types/db-types';
+import {useState, type ReactNode} from 'react';
+import SizeDrawer from '@/components/shared/SizeDrawer';
 import Newsletter from '@/components/shared/Newsletter';
 import FavoriteButton from '@/components/favorites/AddToFavoriteButton';
 import MobileImageSwiper from './MobileImageSwiper';
 import SizeDropdown from './SizeDropdown';
-import Carousel from '@/components/shared/Carousel';
 import NewBadge from '@/components/shared/NewBadge';
-import CarouselProductCard from '@/components/shared/cards/CarouselCard';
 
 type ProductPageProps = {
   product: ProductDetail;
-  categoryProducts?: CarouselCard[];
-  genderProducts?: CarouselCard[];
+  related?: ReactNode;
   onCartClick?: () => void;
   initial?: boolean;
 };
 
-export default function ProductPage({
-  product,
-  categoryProducts = [],
-  genderProducts = [],
-}: ProductPageProps) {
+export default function ProductPage({product, related}: ProductPageProps) {
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [showSizeWarning, setShowSizeWarning] = useState(false);
   const [isMobileSizeDrawerOpen, setIsMobileSizeDrawerOpen] = useState(false);
@@ -67,11 +60,10 @@ export default function ProductPage({
                         src={img}
                         alt={`${product.name} - bild ${idx + 1}`}
                         fill
-                        quality={100}
+                        quality={80}
                         sizes='(min-width: 1024px) 30vw, 0vw'
                         priority={idx < 2}
                         fetchPriority={idx < 2 ? 'high' : 'auto'}
-                        loading={idx < 2 ? 'eager' : 'lazy'}
                         className='object-cover  max-h-full '
                       />
                     </div>
@@ -88,25 +80,21 @@ export default function ProductPage({
           {/* Right column - product info */}
           <div className='flex  flex-col lg:pt-12 px-3 lg:px-0 2xl:px-4 lg:mr-7 sticky top-18 h-full lg:gap-1 mb-10  lg:w-[35%] transition-all duration-300'>
             {/* Product name */}
-            <div className='flex relative items-center justify-between gap-1'>
-              <h1 className='text-base uppercase mt-2 lg:mt-4 font-semibold'>
+            <div className='flex flex-col mt-1 relative '>
+              <div>{product.isNew && <NewBadge />}</div>
+              <h1 className='text-base uppercase mt-0 font-semibold'>
                 {product.name}
               </h1>
-              <span className='absolute -top-2 left-0'>
-                {product.isNew && <NewBadge />}
-              </span>
               {/* <p className='text-gray-700 font-semibold uppercase text-sm'>
                 {product.brand}
               </p> */}
             </div>
 
-            <div className='text-sm text-gray-600 '>
-              {product.price} kr
-            </div>
+            <div className='text-sm text-gray-600 '>{product.price} kr</div>
             <div className='my-5 px-1 lg:px-0 lg:my-0 lg:mt-7 flex items-center justify-between gap-1 '>
-              <div className="flex flex-col items-center">
-                <div className="cursor-pointer h-4 w-4 bg-gray-200 flex items-center justify-center"></div>
-                <div className="w-4 border-b border-black mt-1"></div>
+              <div className='flex flex-col items-center'>
+                <div className='cursor-pointer h-4 w-4 bg-gray-200 flex items-center justify-center'></div>
+                <div className='w-4 border-b border-black mt-1'></div>
               </div>
               <p className='text-xs font-medium uppercase text-gray-600'>
                 {product.color}
@@ -150,57 +138,22 @@ export default function ProductPage({
           </div>
         </div>
       </div>
-      <MobileSizeDrawer
-        product={product}
+      <SizeDrawer
+        productId={product.id}
+        sizes={product.sizes}
         isOpen={isMobileSizeDrawerOpen}
-        selectedSize={selectedSize}
         onClose={() => setIsMobileSizeDrawerOpen(false)}
         onAddSuccess={handleAddToCartSuccess}
       />
 
       <div className=' px-3 pb-20 lg:pb-36 lg:px-8 lg:w-[65%]'>
-        <h2 className='uppercase text-sm mb-1 font-semibold'>
-          Description
-        </h2>
+        <h2 className='uppercase text-sm mb-1 font-semibold'>Description</h2>
         <p className='text-gray-800 font-normal text-sm   '>
           {product.description}
         </p>
       </div>
-      {/* Products in the same category */}
-      {categoryProducts.length > 0 && (
-        <div className='mx-auto pb-8'>
-          <Carousel
-            items={categoryProducts}
-            titelDivClassName='pl-3 pr-0 md:px-6'
-            title='Similar products'
-            renderItem={(product, index) => (
-              <CarouselProductCard
-                product={product}
-                imagePriority={index < 6}
-              />
-            )}
-            id='carousel-one'
-          />
-        </div>
-      )}
-
-      {/* Products for the same gender */}
-      {genderProducts.length > 0 && (
-        <div className='mx-auto py-8'>
-          <Carousel
-            items={genderProducts}
-            title='You may also like'
-            titelDivClassName='pl-3 pr-0 md:px-6'
-            renderItem={(product, index) => (
-              <CarouselProductCard
-                product={product}
-                imagePriority={index < 6}
-              />
-            )}
-            id='carousel-two'
-          />
-        </div>
-      )}
+      {/* Related products — streamed in below the fold */}
+      {related}
       <Newsletter />
     </>
   );

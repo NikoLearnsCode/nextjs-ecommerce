@@ -35,12 +35,12 @@ export default function CarouselProductCard({
               src={images[0]}
               alt={name}
               fill
-              quality={90}
+              quality={80}
               priority={imagePriority}
               fetchPriority={imagePriority ? 'high' : 'auto'}
               loading={imagePriority ? 'eager' : 'lazy'}
               className='object-cover'
-              sizes='(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, 50vw'
+              sizes='(min-width: 1280px) 20vw, (min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw'
             />
           ) : (
             <div className='w-full h-full bg-gray-200 flex items-center justify-center'>
@@ -57,7 +57,7 @@ export default function CarouselProductCard({
         </div>
       )}
 
-      <div className='px-2.5 pt-0.5 flex flex-col'>
+      <div className='px-2.5 pt-1 flex flex-col'>
         <div className='flex items-center justify-between gap-1'>
           <Link
             href={`/${slug}`}

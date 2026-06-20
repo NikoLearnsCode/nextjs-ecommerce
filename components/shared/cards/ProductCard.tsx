@@ -4,17 +4,18 @@ import {useRef, useCallback, memo, useState, useEffect, useMemo} from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {ProductCard as ProductCardType} from '@/lib/types/db-types';
-import {ChevronLeft, ChevronRight} from 'lucide-react';
+import {ChevronLeft, ChevronRight, Plus} from 'lucide-react';
 import {twMerge} from 'tailwind-merge';
 import {usePathname} from 'next/navigation';
 
 import FavoriteButton from '@/components/favorites/AddToFavoriteButton';
 import NewBadge from '@/components/shared/NewBadge';
 import {formatPrice} from '@/utils/formatPrice';
-import {useFavorites} from '@/context/FavoritesProvider';
 import {useNavigatedHistory} from '@/context/NavigatedHistoryProvider';
-import RemoveProductButton from '@/components/shared/ui/RemoveProductButton';
+import CardAddToCart from '@/components/shared/cards/CardAddToCart';
+import {useSizeDrawer} from '@/context/SizeDrawerProvider';
 import {pathnameEndsWithNewCollection} from '@/actions/utils/virtualCategories';
+import type {GridLayout} from '@/components/products/product-grid/ProductGrid';
 
 /** Minimum horizontal swipe (px) to change image on touch; avoids firing the link. */
 const SWIPE_THRESHOLD_PX = 50;
@@ -25,8 +26,10 @@ type ProductCardProps = {
   product: ProductCardType;
   className?: string;
   layout?: 'grid' | 'list';
-  /** LCP: true for above-the-fold grid cells (ProductGrid uses first ~12). */
+  /** LCP: true for above-the-fold grid cells (ProductGrid uses first 4). */
   imagePriority?: boolean;
+  /** Grid density (only affects the non-list grid card). */
+  gridLayout?: GridLayout;
 };
 
 function ProductCardImages({
@@ -138,7 +141,7 @@ function ProductCardImages({
     <div
       className='relative h-full w-full overflow-clip group/slider touch-pan-y'
       role='region'
-      aria-roledescription='bildkarusell'
+      aria-roledescription='image carousel'
       aria-label={`${name} – ${n} images`}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
@@ -148,7 +151,7 @@ function ProductCardImages({
           'flex h-full ease-out',
           skipTransition
             ? 'duration-0'
-            : 'transition-transform duration-300 motion-reduce:transition-none motion-reduce:duration-0',
+            : 'transition-transform duration-300',
         )}
         style={{
           width: `${totalSlides * 100}%`,
@@ -165,7 +168,7 @@ function ProductCardImages({
               className='relative h-full shrink-0'
               style={{flex: `0 0 ${100 / totalSlides}%`}}
               role='group'
-              aria-roledescription='bild'
+              aria-roledescription='image'
               aria-label={`${imageNumber} of ${n}`}
               aria-hidden={i !== slideIndex}
             >
@@ -178,14 +181,13 @@ function ProductCardImages({
               >
                 <Image
                   src={src}
-                  alt={`${name} - bild ${imageNumber}`}
+                  alt={`${name} - image ${imageNumber}`}
                   fill
                   quality={80}
                   priority={imagePriority && i === 1}
                   fetchPriority={imagePriority && i === 1 ? 'high' : 'auto'}
-                  loading={imagePriority && i === 1 ? 'eager' : 'lazy'}
                   className='object-cover p-[1px]'
-                  sizes='(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, 50vw'
+                  sizes='(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw'
                 />
               </Link>
             </div>
@@ -198,7 +200,7 @@ function ProductCardImages({
           <button
             type='button'
             className={twMerge(
-              'hidden pointer-fine:flex absolute left-1 top-1/2 -translate-y-1/2 z-10 items-center justify-center pr-4 pl-2 py-3 transition-opacity duration-500 opacity-0 group-hover/slider:opacity-100 group-focus-within/slider:opacity-100',
+              'hidden pointer-fine:flex absolute left-1 top-1/2 -translate-y-1/2 z-10 items-center justify-center pr-4 pl-2 py-3 transition-opacity duration-300 opacity-0 group-hover/slider:opacity-100 group-focus-within/slider:opacity-100 overlay-focus-ring',
             )}
             aria-label='Previous image'
             onClick={(e) => {
@@ -207,12 +209,16 @@ function ProductCardImages({
               goSlide(-1);
             }}
           >
-            <ChevronLeft size={26} strokeWidth={1} className='text-gray-700' />
+            <ChevronLeft
+              size={26}
+              strokeWidth={1}
+              className='overlay-chevron'
+            />
           </button>
           <button
             type='button'
             className={twMerge(
-              'hidden pointer-fine:flex absolute right-1 top-1/2 -translate-y-1/2 z-10 items-center justify-center pl-4 pr-2 py-3 transition-opacity duration-500 opacity-0 group-hover/slider:opacity-100 group-focus-within/slider:opacity-100',
+              'hidden pointer-fine:flex absolute right-1 top-1/2 -translate-y-1/2 z-10 items-center justify-center pl-4 pr-2 py-3 transition-opacity duration-300 opacity-0 group-hover/slider:opacity-100 group-focus-within/slider:opacity-100 overlay-focus-ring',
             )}
             aria-label='Next image'
             onClick={(e) => {
@@ -224,7 +230,7 @@ function ProductCardImages({
             <ChevronRight
               size={24}
               strokeWidth={1.25}
-              className='text-gray-700'
+              className='overlay-chevron'
             />
           </button>
           {/* <div className='absolute bottom-2 left-1/2 -translate-x-1/2 z-10 flex gap-1.5'>
@@ -248,19 +254,13 @@ function ProductCardInner({
   product,
   layout = 'grid',
   imagePriority = false,
+  gridLayout = 'compact',
 }: ProductCardProps) {
-  const {name, price, images, slug, isNew, id, brand, color} = product;
-  const {removeFavorite, updatingItems} = useFavorites();
+  const {name, price, images, slug, isNew, id, sizes} = product;
   const {handleSaveNavigated} = useNavigatedHistory();
+  const {openSizeDrawer} = useSizeDrawer();
 
   const pathname = usePathname();
-  const handleRemoveItem = async (productId: string) => {
-    try {
-      await removeFavorite(productId);
-    } catch (error) {
-      console.error('Error removing favorite:', error);
-    }
-  };
 
   const hasMultipleImages = images && images.length > 1;
   const hasImages = images && images.length > 0;
@@ -287,23 +287,27 @@ function ProductCardInner({
   }
 
   const isListLayout = layout === 'list';
-  const isUpdating = updatingItems[id] || false;
+  const isComfortable = !isListLayout && gridLayout === 'comfortable';
+  // Compact hides the heart on touch (the + handles add); comfortable keeps it.
+  const heartClassName =
+    gridLayout === 'comfortable' ? '' : 'hidden pointer-fine:inline-flex';
+
+  // Compact grid: on touch the + sits in the heart's slot and opens the size sheet.
+  const plusTrigger =
+    !isListLayout && gridLayout === 'compact' && sizes && sizes.length > 0 ? (
+      <button
+        type='button'
+        className='pointer-fine:hidden inline-flex shrink-0 items-center justify-center pl-3 text-gray-800'
+        aria-label={`Choose a size for ${name}`}
+        onClick={() => openSizeDrawer({productId: id, sizes})}
+      >
+        <Plus size={18} strokeWidth={1.5} />
+      </button>
+    ) : null;
 
   return (
-    <div
-      className={
-        isListLayout
-          ? 'flex flex-row sm:flex-col pb-1 md:pb-0 overflow-hidden group'
-          : 'flex relative flex-col w-full h-full pb-6 group'
-      }
-    >
-      <div
-        className={
-          isListLayout
-            ? 'relative min-w-2/3 w-full h-full aspect-[7/9]'
-            : 'w-full relative bg-white aspect-[7/9]'
-        }
-      >
+    <div className='flex relative flex-col w-full h-full pb-6 group'>
+      <div className='w-full relative bg-white aspect-[7/9]'>
         {hasMultipleImages ? (
           <ProductCardImages
             key={`${slug}-${images.join('\0')}`}
@@ -322,60 +326,56 @@ function ProductCardInner({
               quality={80}
               priority={imagePriority}
               fetchPriority={imagePriority ? 'high' : 'auto'}
-              loading={imagePriority ? 'eager' : 'lazy'}
               className='object-cover'
-              sizes='(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, 50vw'
+              sizes='(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw'
             />
           </Link>
+        )}
+        {sizes && sizes.length > 0 && (
+          <CardAddToCart
+            productId={id}
+            name={name}
+            sizes={sizes}
+            showTouchPlus={isListLayout}
+          />
         )}
       </div>
 
       {isListLayout ? (
-        <div className='px-3 py-4 sm:py-2 relative min-w-1/3 lg:pb-10 lg:px-3 flex flex-col mb-2'>
-          <RemoveProductButton
-            isPending={isUpdating}
-            onClick={() => handleRemoveItem(id)}
-            className='absolute top-2 left-1/2 z-10 -translate-x-1/2 shrink-0 p-2 sm:hidden text-gray-600'
-          />
-
-          <div className='flex flex-col flex-1 gap-1 sm:gap-0 justify-center items-center sm:items-start text-sm w-full pt-8 sm:pt-0'>
-            <div className='relative w-full min-w-0 sm:flex sm:flex-row sm:items-start sm:justify-between sm:gap-2'>
-              <Link
-                href={`/${slug}`}
-                className='focus-visible:underline focus-visible:underline-offset-2 flex flex-col items-start gap-1 justify-center sm:justify-start w-full max-w-full min-w-0 sm:flex-1'
-                onClick={() =>
-                  handleSaveNavigated({slug, image: images[0], name})
-                }
-              >
-                <span className='block w-full min-w-0 flex-1 break-words text-center line-clamp-2 sm:text-left'>
-                  {name}
-                </span>
-              </Link>
-              <RemoveProductButton
-                isPending={isUpdating}
-                onClick={() => handleRemoveItem(id)}
-                className='hidden shrink-0 self-start sm:inline-flex'
-              />
-            </div>
-            <span className='text-black/80 text-sm'>{formatPrice(price)}</span>
+        <div className='px-2 pt-0.5 flex flex-col'>
+          <div className='flex items-center justify-between gap-1'>
+            <Link
+              href={`/${slug}`}
+              className='pt-0.5 min-w-0 w-fit'
+              onClick={() =>
+                handleSaveNavigated({slug, image: images[0], name})
+              }
+            >
+              <h2 className='text-xs sm:text-sm font-normal truncate '>
+                {name}
+              </h2>
+            </Link>
+            <FavoriteButton
+              product={product}
+              size={18}
+              className='shrink-0 h-auto w-8 p-0'
+            />
           </div>
-          <div className='text-sm mt-1 gap-2 md:text-base  flex flex-col sm:flex-row items-center'>
-            <div className='flex gap-3 justify-center flex-wrap px-4 sm:px-0 sm:gap-4 text-xs'>
-              {brand && <span>{brand}</span>}
-              {color && <span>{color}</span>}
-            </div>
-          </div>
+          <p className='text-xs text-gray-700 sm:text-sm'>
+            {formatPrice(price)}
+          </p>
         </div>
       ) : (
         <>
           {isNew && !pathnameEndsWithNewCollection(pathname) && (
-            <div className='px-2 pt-0.5 -mb-1 flex items-center justify-between'>
+            <div className='px-2 pt-1 -mb-1 flex items-center justify-between'>
               <NewBadge />
-              <FavoriteButton product={product} />
+              {plusTrigger}
+              <FavoriteButton product={product} className={heartClassName} />
             </div>
           )}
 
-          <div className='px-2 pt-0.5 flex flex-col'>
+          <div className='px-2 pt-1 flex flex-col'>
             <div className='flex items-center justify-between gap-1'>
               <Link
                 href={`/${slug}`}
@@ -389,7 +389,10 @@ function ProductCardInner({
                 </h2>
               </Link>
               {(!isNew || pathnameEndsWithNewCollection(pathname)) && (
-                <FavoriteButton product={product} />
+                <>
+                  {plusTrigger}
+                  <FavoriteButton product={product} className={heartClassName} />
+                </>
               )}
             </div>
             <p className='text-xs text-gray-700 sm:text-sm'>
@@ -397,6 +400,17 @@ function ProductCardInner({
             </p>
           </div>
         </>
+      )}
+
+      {isComfortable && sizes && sizes.length > 0 && (
+        <button
+          type='button'
+          className='pointer-fine:hidden my-2 mt-4 mx-2  bg-black h-11 text-[11px] font-medium uppercase tracking-wide text-white'
+          aria-label={`Choose a size for ${name}`}
+          onClick={() => openSizeDrawer({productId: id, sizes})}
+        >
+          Add to cart
+        </button>
       )}
     </div>
   );

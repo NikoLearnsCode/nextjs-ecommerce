@@ -112,15 +112,20 @@ export function buildCategoryGenderFilters(
 }
 
 /**
- * "New in" filter — products created within NEW_PRODUCT_DAYS.
+ * Single source of truth for the "is new" predicate: published within
+ * NEW_PRODUCT_DAYS. Add `.as('isNew')` when used as a selected column.
+ */
+export const isNewSql = () =>
+  sql<boolean>`${productsTable.published_at} > NOW() - INTERVAL '${sql.raw(NEW_PRODUCT_DAYS.toString())} days'`;
+
+/**
+ * "New in" filter — products published within NEW_PRODUCT_DAYS.
  * @param isNewOnly When false, returns no extra conditions
  */
 export function buildIsNewFilter(isNewOnly: boolean) {
   if (!isNewOnly) return [];
 
-  return [
-    sql`${productsTable.published_at} > NOW() - INTERVAL '${sql.raw(NEW_PRODUCT_DAYS.toString())} days'`,
-  ];
+  return [isNewSql()];
 }
 
 /**
@@ -267,9 +272,7 @@ export async function fetchAvailableFilterOptions(
   if (category) metadataConditions.push(eq(productsTable.category, category));
   metadataConditions.push(sql`${productsTable.published_at} <= NOW()`);
   if (isNewOnly) {
-    metadataConditions.push(
-      sql`${productsTable.published_at} > NOW() - INTERVAL '${sql.raw(NEW_PRODUCT_DAYS.toString())} days'`,
-    );
+    metadataConditions.push(isNewSql());
   }
 
   const whereClause =

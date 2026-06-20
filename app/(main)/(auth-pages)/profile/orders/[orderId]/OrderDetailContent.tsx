@@ -152,10 +152,10 @@ export default function OrderDetailContent({order}: OrderDetailContentProps) {
         {/* Bottom Section - Order Summary */}
 
         <div className='float-right pb-10 border-t border-gray-200 px-5 lg:px-0  w-full md:w-[50%] p-3 mt-7'>
-          <h3 className='text-sm uppercase font-semibold pt-5  mb-4 text-gray-900'>
+          <h3 className='text-sm uppercase font-semibold pt-5  mb-3 text-gray-900'>
             ORDER SUMMARY
           </h3>
-          <div className='space-y-2 text-sm'>
+          <div className='space-y-0.5 text-sm'>
             <div className='flex justify-between'>
               <span className='text-gray-700'>Subtotal</span>
               <span className='text-gray-900'>
@@ -166,7 +166,7 @@ export default function OrderDetailContent({order}: OrderDetailContentProps) {
               <span className='text-gray-700'>Shipping</span>
               <span className='text-gray-900'>Free</span>
             </div>
-            <div className=' pt-1'>
+            <div>
               <div className='flex justify-between font-semibold'>
                 <span className='text-gray-900'>Total</span>
                 <span className='text-gray-900'>

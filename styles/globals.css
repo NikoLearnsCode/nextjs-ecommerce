@@ -10,6 +10,10 @@ body {
   scroll-behavior: smooth;
 }
 
+html {
+  scroll-padding-top: var(--header-height);
+}
+
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -97,6 +101,22 @@ textarea:-webkit-autofill:active {
   [data-initial-focus]:focus,
   [data-initial-focus]:focus-visible {
     outline: none;
+  }
+}
+
+/* Black icon with a crisp white outline; stays legible over any image. */
+@utility overlay-chevron {
+  color: #000;
+  filter: drop-shadow(0.6px 0.6px 0 white)
+    drop-shadow(-0.6px -0.6px 0 white) drop-shadow(0.6px -0.6px 0 white)
+    drop-shadow(-0.6px 0.6px 0 white);
+}
+
+/* Dual black+white focus ring for controls sitting over images. */
+@utility overlay-focus-ring {
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px white, 0 0 0 4px black;
   }
 }
 

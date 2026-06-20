@@ -23,7 +23,7 @@ interface FavoritesContextType {
   loading: boolean;
   refreshFavorites: () => Promise<void>;
   removeFavorite: (productId: string) => Promise<void>;
-  toggleFavoriteItem: (productId: string) => Promise<void>;
+  toggleFavoriteItem: (productId: string) => Promise<boolean>;
   isFavorite: (productId: string) => boolean;
   updatingItems: Record<string, boolean>;
 }
@@ -34,7 +34,7 @@ const FavoritesContext = createContext<FavoritesContextType>({
   loading: true,
   refreshFavorites: async () => {},
   removeFavorite: async () => {},
-  toggleFavoriteItem: async () => {},
+  toggleFavoriteItem: async () => false,
   isFavorite: () => false,
   updatingItems: {},
 });
@@ -93,19 +93,23 @@ export function FavoritesProvider({children}: {children: React.ReactNode}) {
     [refreshFavorites]
   );
 
+  // Returns whether the toggle persisted, so callers (e.g. move-to-favorites)
+  // can avoid destructive follow-ups when the save failed.
   const toggleFavoriteItem = useCallback(
-    async (productId: string) => {
+    async (productId: string): Promise<boolean> => {
       try {
         setUpdatingItems((prev) => ({...prev, [productId]: true}));
         const result = await toggleFavorite(productId);
         if (result.success) {
           setFavorites(result.favorites || []);
-        } else {
-          await refreshFavorites();
+          return true;
         }
+        await refreshFavorites();
+        return false;
       } catch (error) {
         console.error('Error toggling favorite:', error);
         await refreshFavorites();
+        return false;
       } finally {
         setUpdatingItems((prev) => ({...prev, [productId]: false}));
       }

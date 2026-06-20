@@ -377,7 +377,7 @@ export default function CategoryForm({mode, initialData}: CategoryFormProps) {
                     className='w-full h-full object-cover'
                     width={700}
                     height={300}
-                    quality={100}
+                    quality={80}
                   />
                   <button
                     type='button'
@@ -413,7 +413,7 @@ export default function CategoryForm({mode, initialData}: CategoryFormProps) {
                     className='w-full object-contain'
                     width={300}
                     height={700}
-                    quality={100}
+                    quality={80}
                   />
                   <button
                     type='button'

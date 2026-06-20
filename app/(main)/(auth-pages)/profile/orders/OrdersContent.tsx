@@ -69,9 +69,9 @@ export default function OrdersClientContent({
                       <Link
                         href={`/profile/orders/${order.id}`}
                         size='none'
-                        className='group relative block h-full w-full rounded-lg outline-none ring-0 focus:ring-0 focus-visible:ring-0'
+                        className='group relative block h-full w-full outline-none ring-0 focus:ring-0 focus-visible:ring-0'
                       >
-                        <div className='relative bg-gray-50 rounded-lg overflow-hidden hover:shadow-md transition-shadow duration-200 h-full w-full'>
+                        <div className='relative bg-gray-50 overflow-hidden hover:shadow-md transition-shadow duration-200 h-full w-full'>
                           {item.image ? (
                             <Image
                               src={item.image}

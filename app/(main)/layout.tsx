@@ -3,6 +3,7 @@ import {getNavigationData} from '@/actions/navigation.actions';
 import Footer from '@/components/footer/Footer';
 import Header from '@/components/header/Header';
 import {MAIN_CONTENT_ID} from '@/lib/focus';
+import {SizeDrawerProvider} from '@/context/SizeDrawerProvider';
 import {Toaster} from 'sonner';
 
 export default async function MainLayout({
@@ -13,17 +14,19 @@ export default async function MainLayout({
   const navLinks = await getNavigationData();
 
   return (
-    <div className='min-h-[calc(100vh-250px)] w-full flex flex-col'>
-      <Header navLinks={navLinks} />
-      <main
-        id={MAIN_CONTENT_ID}
-        tabIndex={-1}
-        className='flex-1 w-full outline-none'
-      >
-        {children}
-      </main>
-      <Footer />
-      <Toaster />
-    </div>
+    <SizeDrawerProvider>
+      <div className='min-h-[calc(100vh-250px)] w-full flex flex-col'>
+        <Header navLinks={navLinks} />
+        <main
+          id={MAIN_CONTENT_ID}
+          tabIndex={-1}
+          className='flex-1 w-full outline-none'
+        >
+          {children}
+        </main>
+        <Footer />
+        <Toaster />
+      </div>
+    </SizeDrawerProvider>
   );
 }

@@ -1,19 +1,25 @@
 'use client';
 
+import type {GridLayout} from '@/components/products/product-grid/ProductGrid';
+import GridIcon from '@/components/icons/GridIcon';
+import SquareIcon from '@/components/icons/SquareIcon';
+
 interface FilterBarProps {
   dialogId: string;
   onOpen: () => void;
-  totalCount: number;
   activeFilterCount: number;
   hasActiveFilters: boolean;
+  gridLayout: GridLayout;
+  onGridLayoutChange: (layout: GridLayout) => void;
 }
 
 export default function FilterBar({
   dialogId,
   onOpen,
-  totalCount,
   activeFilterCount,
   hasActiveFilters,
+  gridLayout,
+  onGridLayoutChange,
 }: FilterBarProps) {
   return (
     <div className='sticky top-14 w-full bg-white py-4 pb-5 px-4 sm:px-8 text-base flex justify-between items-center z-20'>
@@ -29,16 +35,44 @@ export default function FilterBar({
         >
           Filter and sort{' '}
           {hasActiveFilters && (
-            <span className='inline-flex items-center text-black  '>
+            <span className='inline-flex items-center text-black'>
               ({activeFilterCount})
             </span>
           )}
         </span>
       </button>
-      <span className=' text-xs   font-semibold text-gray-600'>
-        {totalCount}{' '}
-        <span className=''>{totalCount === 1 ? 'product' : 'products'}</span>
-      </span>
+      <div
+        className='flex items-center -mb-1 gap-x-3'
+        role='group'
+        aria-label='Product grid layout'
+      >
+        <button
+          type='button'
+          onClick={() => onGridLayoutChange('compact')}
+          aria-pressed={gridLayout === 'compact'}
+          aria-label='More products per row'
+          className={`cursor-pointer p-0.5 pb-1.5 border-b transition-colors ${
+            gridLayout === 'compact'
+              ? 'border-black text-black/80'
+              : 'border-transparent text-gray-400 hover:text-gray-600'
+          }`}
+        >
+          <GridIcon className='size-4' />
+        </button>
+        <button
+          type='button'
+          onClick={() => onGridLayoutChange('comfortable')}
+          aria-pressed={gridLayout === 'comfortable'}
+          aria-label='Larger cards, fewer per row'
+          className={`cursor-pointer p-0.5 pb-1.5 border-b transition-colors ${
+            gridLayout === 'comfortable'
+              ? 'border-black text-black/80'
+              : 'border-transparent text-gray-400 hover:text-gray-600'
+          }`}
+        >
+          <SquareIcon className='size-4' />
+        </button>
+      </div>
     </div>
   );
 }

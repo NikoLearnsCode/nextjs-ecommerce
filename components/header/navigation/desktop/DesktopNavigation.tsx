@@ -84,7 +84,9 @@ export function DesktopNavigation({navLinks}: DesktopNavigationProps) {
                 onClick={() => handleKeyOpen(index)}
                 aria-haspopup='dialog'
                 aria-expanded={isCurrentlyOpen}
-                aria-controls={isCurrentlyOpen ? 'desktop-nav-dialog' : undefined}
+                aria-controls={
+                  isCurrentlyOpen ? 'desktop-nav-dialog' : undefined
+                }
                 className='inline-flex w-3.5 justify-center items-center focus:text-black opacity-0 focus:opacity-100 text-white cursor-default'
                 aria-label={`Open ${link.title} menu`}
               >

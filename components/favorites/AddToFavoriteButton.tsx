@@ -12,7 +12,7 @@ type FavoriteButtonProps = {
 };
 
 export default function FavoriteButton({
-  size = 16,
+  size = 18,
   strokeWidth = 1.5,
   className = '',
   product,

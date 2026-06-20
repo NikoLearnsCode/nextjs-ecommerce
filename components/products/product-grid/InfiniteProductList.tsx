@@ -7,6 +7,7 @@ import {useSearchParams} from 'next/navigation';
 import type {ProductCard} from '@/lib/types/db-types';
 import type {SearchMode} from '@/lib/types/query-types';
 import ProductGrid from '@/components/products/product-grid/ProductGrid';
+import type {GridLayout} from '@/components/products/product-grid/ProductGrid';
 import {useInfiniteProducts} from '@/hooks/useInfiniteProducts';
 import SpinningLogo from '@/components/shared/ui/SpinningLogo';
 
@@ -21,6 +22,7 @@ export type InfiniteProductListProps =
       className?: string;
       gender?: string;
       category?: string;
+      gridLayout?: GridLayout;
     }
   | {
       mode: 'search';
@@ -153,7 +155,7 @@ export default function InfiniteProductList(props: InfiniteProductListProps) {
   if (props.mode === 'category') {
     return (
       <div ref={containerRef} className={props.className}>
-        <ProductGrid products={displayProducts} />
+        <ProductGrid products={displayProducts} gridLayout={props.gridLayout} />
         {sentinel}
       </div>
     );

@@ -4,12 +4,7 @@ import {useState} from 'react';
 import {Button} from '@/components/shared/ui/button';
 import {Product} from '@/lib/types/db-types';
 import {AddToCartItem} from '@/lib/types/db-types';
-import {useCart} from '@/context/CartProvider';
-import {
-  CART_HEADER_POPOVER_ID,
-  CART_HEADER_TRIGGER_ID,
-  openHeaderPopover,
-} from '@/components/shared/HeaderPopoverPanel';
+import {useAddToCart} from '@/hooks/useAddToCart';
 
 type AddToCartButtonProps = {
   product: Product;
@@ -29,7 +24,7 @@ export default function AddToCartButton({
   onSizeMissing,
 }: AddToCartButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const {addItem} = useCart();
+  const addToCart = useAddToCart();
 
   const handleAddToCart = async () => {
     if (!selectedSize) {
@@ -45,11 +40,7 @@ export default function AddToCartButton({
         size: selectedSize,
       };
 
-      await addItem(itemToAdd);
-      onAddSuccess?.();
-      openHeaderPopover(CART_HEADER_TRIGGER_ID, CART_HEADER_POPOVER_ID);
-    } catch (error) {
-      console.error('Error adding to cart:', error);
+      await addToCart(itemToAdd, {onSuccess: onAddSuccess});
     } finally {
       setIsLoading(false);
     }

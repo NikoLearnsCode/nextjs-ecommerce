@@ -27,13 +27,13 @@ export default function FavoritesPage() {
             </h1>
           </div>
 
-          <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-[1px]'>
+          <div className='grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-[1px]'>
             {favorites.map((fav, index) => (
               <ProductCard
                 key={fav.id}
                 product={fav.product}
                 layout='list'
-                imagePriority={index < 12}
+                imagePriority={index < 4}
               />
             ))}
           </div>

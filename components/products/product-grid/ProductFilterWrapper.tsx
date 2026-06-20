@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, useMemo} from 'react';
+import {useState, useMemo, useEffect} from 'react';
 import {useRouter, usePathname, useSearchParams} from 'next/navigation';
 
 import {ProductCard} from '@/lib/types/db-types';
@@ -10,6 +10,9 @@ import FilterBar from '@/components/products/product-grid/ProductFilterBar';
 import FilterPanel from '@/components/products/product-grid/ProductFilterPanel';
 import {useScrollLock} from '@/hooks/useScrollLock';
 import InfiniteProductList from './InfiniteProductList';
+import type {GridLayout} from '@/components/products/product-grid/ProductGrid';
+
+const GRID_LAYOUT_STORAGE_KEY = 'product-grid-layout';
 
 interface ProductFilterWrapperProps {
   initialProducts: ProductCard[];
@@ -41,6 +44,22 @@ export default function ProductFilterWrapper({
   const searchParams = useSearchParams();
   const filterDialogId = 'product-filter-dialog';
   const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
+  const [gridLayout, setGridLayout] = useState<GridLayout>('compact');
+
+  // Restore the saved layout after mount. setState-in-effect is intentional:
+  // reading localStorage during render would cause an SSR hydration mismatch.
+  useEffect(() => {
+    const saved = localStorage.getItem(GRID_LAYOUT_STORAGE_KEY);
+    if (saved === 'compact' || saved === 'comfortable') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration-safe restore
+      setGridLayout(saved);
+    }
+  }, []);
+
+  const handleGridLayoutChange = (layout: GridLayout) => {
+    setGridLayout(layout);
+    localStorage.setItem(GRID_LAYOUT_STORAGE_KEY, layout);
+  };
 
   useScrollLock(isFilterDialogOpen);
 
@@ -172,9 +191,10 @@ export default function ProductFilterWrapper({
           <FilterBar
             dialogId={filterDialogId}
             onOpen={() => setIsFilterDialogOpen(true)}
-            totalCount={totalCount ?? 0}
             activeFilterCount={activeFilterCount}
             hasActiveFilters={hasActiveFilters}
+            gridLayout={gridLayout}
+            onGridLayoutChange={handleGridLayoutChange}
           />
           <FilterPanel
             dialogId={filterDialogId}
@@ -202,6 +222,7 @@ export default function ProductFilterWrapper({
           category={category}
           className={className}
           initialHasMore={initialHasMore}
+          gridLayout={gridLayout}
         />
       </div>
     </div>

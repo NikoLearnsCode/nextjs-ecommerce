@@ -20,13 +20,6 @@ export default function SizeDropdown({
 }: SizeDropdownProps) {
   const [isOpen, setIsOpen] = useState(true);
 
-  // Previously: expanded the list when selectedSize was cleared after add to cart — left disabled so the UI does not “reset” the chosen size
-  // useEffect(() => {
-  //   if (!selectedSize) {
-  //     setIsOpen(true);
-  //   }
-  // }, [selectedSize]);
-
   const showWarningState = showWarning && !selectedSize;
 
   return (

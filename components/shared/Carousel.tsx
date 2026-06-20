@@ -2,9 +2,10 @@
 
 import {ArrowLeft, ArrowRight} from 'lucide-react';
 import {Swiper, SwiperSlide} from 'swiper/react';
-import {Navigation} from 'swiper/modules';
+import {Navigation, A11y, Mousewheel} from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
+import 'swiper/css/a11y';
 import type SwiperType from 'swiper';
 import {useState} from 'react';
 import {twMerge} from 'tailwind-merge';
@@ -59,13 +60,20 @@ const Carousel = <T,>({
   const [isBeginning, setIsBeginning] = useState(true);
   const [isEnd, setIsEnd] = useState(false);
 
-  const handleSlideChange = (swiper: SwiperType) => {
+  // Keep nav state in sync and pull off-screen slides out of tab order / a11y tree
+  // so keyboard focus only ever reaches the currently visible slides.
+  const syncA11y = (swiper: SwiperType) => {
     setIsBeginning(swiper.isBeginning);
     setIsEnd(swiper.isEnd);
+    swiper.slides.forEach((slide) => {
+      const visible = slide.classList.contains('swiper-slide-visible');
+      slide.toggleAttribute('inert', !visible);
+    });
   };
 
   const prevButtonClass = `${id}-prev`;
   const nextButtonClass = `${id}-next`;
+  const titleId = `${id}-title`;
 
   if (items.length === 0) {
     return null;
@@ -77,14 +85,15 @@ const Carousel = <T,>({
         <div
           className={twMerge(
             'flex justify-between items-center mb-2 lg:mb-3 ',
-            titelDivClassName
+            titelDivClassName,
           )}
         >
           {title && (
             <h2
+              id={titleId}
               className={twMerge(
                 'text-sm text-gray-800 uppercase font-semibold',
-                titleClassName
+                titleClassName,
               )}
             >
               {title}
@@ -95,9 +104,9 @@ const Carousel = <T,>({
             <div className={twMerge('flex z-10', navigationClassName)}>
               <button
                 className={`${prevButtonClass} py-1.5 pl-3 pr-1.5 transition cursor-pointer ${
-                  isBeginning ? 'opacity-50 pointer-events-none' : 'opacity-100'
+                  isBeginning ? 'opacity-30 pointer-events-none' : 'opacity-100'
                 }`}
-                aria-label='Previous'
+                aria-label='Previous slide'
                 disabled={isBeginning}
               >
                 <ArrowLeft
@@ -108,9 +117,9 @@ const Carousel = <T,>({
 
               <button
                 className={`${nextButtonClass} py-1.5 pr-3 pl-1.5 transition cursor-pointer ${
-                  isEnd ? 'opacity-50 pointer-events-none' : 'opacity-100'
+                  isEnd ? 'opacity-30 pointer-events-none' : 'opacity-100'
                 }`}
-                aria-label='Next'
+                aria-label='Next slide'
                 disabled={isEnd}
               >
                 <ArrowRight
@@ -125,7 +134,10 @@ const Carousel = <T,>({
 
       {/* Swiper carousel */}
       <Swiper
-        modules={[Navigation]}
+        aria-labelledby={title ? titleId : undefined}
+        aria-label={title ? undefined : 'Product carousel'}
+        modules={[Navigation, A11y, Mousewheel]}
+        mousewheel={{forceToAxis: true}}
         spaceBetween={spaceBetween}
         slidesPerView={2}
         breakpoints={breakpoints}
@@ -133,8 +145,22 @@ const Carousel = <T,>({
           prevEl: `.${prevButtonClass}`,
           nextEl: `.${nextButtonClass}`,
         }}
-        onSlideChange={handleSlideChange}
-        onInit={handleSlideChange}
+        watchSlidesProgress
+        a11y={{
+          enabled: true,
+          containerRoleDescriptionMessage: 'carousel',
+          itemRoleDescriptionMessage: 'slide',
+          prevSlideMessage: 'Previous slide',
+          nextSlideMessage: 'Next slide',
+          firstSlideMessage: 'This is the first slide',
+          lastSlideMessage: 'This is the last slide',
+          slideLabelMessage: '{{index}} of {{slidesLength}}',
+        }}
+        onInit={syncA11y}
+        onSlideChange={syncA11y}
+        onTransitionEnd={syncA11y}
+        onResize={syncA11y}
+        onBreakpoint={syncA11y}
       >
         {items.map((item, index) => (
           <SwiperSlide key={index}>{renderItem(item, index)}</SwiperSlide>

@@ -5,8 +5,8 @@ import {getOrCreateSessionId, getSessionId} from '@/utils/cookies';
 import type {NewFavorite} from '@/lib/types/db-types';
 import {db} from '@/drizzle/index';
 import {favoritesTable, productsTable} from '@/drizzle/db/schema';
-import {eq, and, isNull, sql, inArray} from 'drizzle-orm';
-import {NEW_PRODUCT_DAYS} from '@/lib/constants';
+import {eq, and, isNull, inArray} from 'drizzle-orm';
+import {isNewSql} from '@/actions/lib/infiniteQuery-builder';
 
 export async function getFavorites() {
   try {
@@ -33,10 +33,7 @@ export async function getFavorites() {
           slug: productsTable.slug,
           category: productsTable.category,
           created_at: productsTable.created_at,
-          isNew:
-            sql<boolean>`${productsTable.created_at} > NOW() - INTERVAL '${sql.raw(
-              NEW_PRODUCT_DAYS.toString()
-            )} days'`.as('isNew'),
+          isNew: isNewSql().as('isNew'),
         },
       })
       .from(favoritesTable)

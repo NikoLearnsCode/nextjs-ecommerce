@@ -1,11 +1,7 @@
 'use server';
 
 import {auth} from '@/lib/auth';
-import {
-  CART_SESSION_COOKIE,
-  getOrCreateSessionId,
-  getSessionId,
-} from '@/utils/cookies';
+import {getOrCreateSessionId, getSessionId} from '@/utils/cookies';
 import type {
   NewCart,
   NewCartItem,
@@ -16,7 +12,6 @@ import type {
 import {db} from '@/drizzle/index';
 import {cartsTable, cartItemsTable, productsTable} from '@/drizzle/db/schema';
 import {eq, and, isNull, asc, inArray} from 'drizzle-orm';
-import {cookies} from 'next/headers';
 import Decimal from 'decimal.js';
 
 // Helpers
@@ -89,7 +84,7 @@ export async function getCart() {
         .select()
         .from(cartsTable)
         .where(
-          and(eq(cartsTable.session_id, sessionId), isNull(cartsTable.user_id))
+          and(eq(cartsTable.session_id, sessionId), isNull(cartsTable.user_id)),
         )
         .limit(1);
       cart = cartData[0] || null;
@@ -142,8 +137,8 @@ export async function addToCart(newItem: AddToCartItem) {
         and(
           eq(cartItemsTable.cart_id, cart.id),
           eq(cartItemsTable.product_id, newItem.product_id),
-          eq(cartItemsTable.size, newItem.size)
-        )
+          eq(cartItemsTable.size, newItem.size),
+        ),
       )
       .limit(1);
 
@@ -198,9 +193,10 @@ export async function removeFromCart(itemId: string) {
       .where(eq(cartItemsTable.cart_id, cart.id));
 
     if (remainingItems.length === 0) {
+      // Delete the empty cart but keep the session cookie: it's shared with
+      // favorites, so dropping it would orphan a guest's saved favorites.
+      // addToCart recreates a cart from the same session on the next add.
       await db.delete(cartsTable).where(eq(cartsTable.id, cart.id));
-      const cookieStore = await cookies();
-      cookieStore.delete(CART_SESSION_COOKIE);
       return {success: true, cartItems: [], totalPrice: 0, itemCount: 0};
     }
 
@@ -247,9 +243,8 @@ export async function clearCart() {
       return {success: true, cartItems: [], totalPrice: 0, itemCount: 0};
     }
 
+    // Keep the session cookie (shared with favorites); just drop the cart row.
     await db.delete(cartsTable).where(eq(cartsTable.id, cart.id));
-    const cookieStore = await cookies();
-    cookieStore.delete(CART_SESSION_COOKIE);
 
     return {success: true, cartItems: [], totalPrice: 0, itemCount: 0};
   } catch (error) {
@@ -268,7 +263,7 @@ export async function transferCartOnLogin(userId: string) {
         .select()
         .from(cartsTable)
         .where(
-          and(eq(cartsTable.session_id, sessionId), isNull(cartsTable.user_id))
+          and(eq(cartsTable.session_id, sessionId), isNull(cartsTable.user_id)),
         )
         .limit(1),
       db
@@ -311,7 +306,7 @@ export async function transferCartOnLogin(userId: string) {
     }
 
     const userItemsMap = new Map(
-      userItems.map((item) => [`${item.product_id}_${item.size}`, item])
+      userItems.map((item) => [`${item.product_id}_${item.size}`, item]),
     );
 
     const itemsToUpdateQuantity: {id: string; newQuantity: number}[] = [];
@@ -338,7 +333,7 @@ export async function transferCartOnLogin(userId: string) {
           db
             .update(cartItemsTable)
             .set({quantity: item.newQuantity, updated_at: new Date()})
-            .where(eq(cartItemsTable.id, item.id))
+            .where(eq(cartItemsTable.id, item.id)),
         );
       }
     }
@@ -348,7 +343,7 @@ export async function transferCartOnLogin(userId: string) {
         db
           .update(cartItemsTable)
           .set({cart_id: userCart.id, updated_at: new Date()})
-          .where(inArray(cartItemsTable.id, idsToMove))
+          .where(inArray(cartItemsTable.id, idsToMove)),
       );
     }
 

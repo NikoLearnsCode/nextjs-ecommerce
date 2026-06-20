@@ -1,10 +1,8 @@
 'use server';
 
-import {and, eq, count, sql, ne, getTableColumns} from 'drizzle-orm';
+import {and, count} from 'drizzle-orm';
 import {productsTable} from '@/drizzle/db/schema';
 import type {Params, Result, SearchMode} from '@/lib/types/query-types';
-import {NEW_PRODUCT_DAYS} from '@/lib/constants';
-import {ProductDetail, CarouselCard} from '@/lib/types/db-types';
 import {
   createSearchFilters,
   createSearchRankExpr,
@@ -16,104 +14,10 @@ import {
   buildCursorPaginationWhereClause,
   createSortOrderClause,
   fetchAvailableFilterOptions,
+  isNewSql,
 } from '@/actions/lib/infiniteQuery-builder';
 import {productSearchTsQuery} from '@/lib/search-query';
 import {db} from '@/drizzle/index';
-
-export async function getProductSlugAndRelatedProducts(slug: string): Promise<{
-  product: ProductDetail | null;
-  categoryProducts: CarouselCard[];
-  genderProducts: CarouselCard[];
-}> {
-  // Exclude the FTS document from payloads sent to the client
-  const {search_vector: _sv, ...productColumns} =
-    getTableColumns(productsTable);
-
-  const mainProduct = await db
-    .select({
-      ...productColumns,
-      isNew:
-        sql<boolean>`${productsTable.published_at} > NOW() - INTERVAL '${sql.raw(NEW_PRODUCT_DAYS.toString())} days'`.as(
-          'isNew'
-        ),
-    })
-    .from(productsTable)
-    .where(
-      and(
-        eq(productsTable.slug, slug),
-        sql`${productsTable.published_at} <= NOW()`
-      )
-    )
-    .limit(1);
-
-  if (mainProduct.length === 0) {
-    return {
-      product: null,
-      categoryProducts: [],
-      genderProducts: [],
-    };
-  }
-
-  const product = mainProduct[0];
-  const {id, category, gender} = product;
-
-  const [sameCategoryProducts, sameGenderProducts] = await Promise.all([
-    // Same category + gender
-    db
-      .select({
-        id: productsTable.id,
-        name: productsTable.name,
-        price: productsTable.price,
-        images: productsTable.images,
-        slug: productsTable.slug,
-        created_at: productsTable.created_at,
-        isNew:
-          sql<boolean>`${productsTable.published_at} > NOW() - INTERVAL '${sql.raw(NEW_PRODUCT_DAYS.toString())} days'`.as(
-            'isNew'
-          ),
-      })
-      .from(productsTable)
-      .where(
-        and(
-          eq(productsTable.category, category),
-          eq(productsTable.gender, gender),
-          ne(productsTable.id, id),
-          sql`${productsTable.published_at} <= NOW()`
-        )
-      )
-      .limit(8),
-    // Same gender, different category
-    db
-      .select({
-        id: productsTable.id,
-        name: productsTable.name,
-        price: productsTable.price,
-        images: productsTable.images,
-        slug: productsTable.slug,
-        created_at: productsTable.created_at,
-        isNew:
-          sql<boolean>`${productsTable.published_at} > NOW() - INTERVAL '${sql.raw(NEW_PRODUCT_DAYS.toString())} days'`.as(
-            'isNew'
-          ),
-      })
-      .from(productsTable)
-      .where(
-        and(
-          eq(productsTable.gender, gender),
-          ne(productsTable.id, id),
-          ne(productsTable.category, category),
-          sql`${productsTable.published_at} <= NOW()`
-        )
-      )
-      .limit(8),
-  ]);
-
-  return {
-    product: product,
-    categoryProducts: sameCategoryProducts,
-    genderProducts: sameGenderProducts,
-  };
-}
 
 export async function getInfiniteProducts({
   limit = 0,
@@ -177,10 +81,7 @@ export async function getInfiniteProducts({
           images: productsTable.images,
           slug: productsTable.slug,
           created_at: productsTable.created_at,
-          isNew:
-            sql<boolean>`${productsTable.created_at} > NOW() - INTERVAL '${sql.raw(NEW_PRODUCT_DAYS.toString())} days'`.as(
-              'isNew'
-            ),
+          isNew: isNewSql().as('isNew'),
           ...(rankExpr ? {rank: rankExpr.as('rank')} : {}),
         })
         .from(productsTable)

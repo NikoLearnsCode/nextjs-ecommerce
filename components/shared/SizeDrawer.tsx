@@ -4,37 +4,30 @@ import {useEffect, useId} from 'react';
 import {ModalDialog} from '@/components/shared/modal/ModalDialog';
 import {ModalCloseButton} from '@/components/shared/modal/ModalCloseButton';
 import {FocusHeading} from '@/components/shared/FocusHeading';
-import {useCart} from '@/context/CartProvider';
+import {useAddToCart} from '@/hooks/useAddToCart';
 import {useScrollLock} from '@/hooks/useScrollLock';
 import {focusInitialIn} from '@/lib/focus';
-import {
-  CART_HEADER_POPOVER_ID,
-  CART_HEADER_TRIGGER_ID,
-  openHeaderPopover,
-} from '@/components/shared/HeaderPopoverPanel';
-import type {ProductDetail} from '@/lib/types/db-types';
 
-type MobileSizeDrawerProps = {
-  product: ProductDetail;
+type SizeDrawerProps = {
+  productId: string;
+  sizes: string[];
   isOpen: boolean;
-  selectedSize: string | null;
   onClose: () => void;
-  onAddSuccess: () => void;
+  onAddSuccess?: () => void;
 };
 
-export default function MobileSizeDrawer({
-  product,
+export default function SizeDrawer({
+  productId,
+  sizes,
   isOpen,
   onClose,
   onAddSuccess,
-}: MobileSizeDrawerProps) {
-  const {addItem} = useCart();
+}: SizeDrawerProps) {
+  const addToCart = useAddToCart();
   const dialogId = useId();
   const titleId = useId();
   useScrollLock(isOpen);
 
-  // Opened programmatically (add-to-cart with no size), so drive the native
-  // <dialog> from `isOpen`; user-driven closes sync back via ModalDialog.onClose.
   useEffect(() => {
     const dialog = document.getElementById(
       dialogId,
@@ -52,13 +45,10 @@ export default function MobileSizeDrawer({
 
   const handleSizeSelect = async (size: string) => {
     onClose();
-    try {
-      await addItem({product_id: product.id, quantity: 1, size});
-      onAddSuccess();
-      openHeaderPopover(CART_HEADER_TRIGGER_ID, CART_HEADER_POPOVER_ID);
-    } catch (error) {
-      console.error('Error adding to cart:', error);
-    }
+    await addToCart(
+      {product_id: productId, quantity: 1, size},
+      {onSuccess: onAddSuccess},
+    );
   };
 
   return (
@@ -85,11 +75,11 @@ export default function MobileSizeDrawer({
         />
       </div>
       <div className='overflow-y-auto flex-1'>
-        {product.sizes.map((size) => (
+        {sizes.map((size) => (
           <button
             key={size}
             type='button'
-            className='w-full text-left first:mt-1 px-5 py-3.5 my-0.5 text-xs font-medium border-b last:border-b-0 last:pb-8 border-gray-200 cursor-pointer'
+            className='w-full text-left first:mt-1 px-5 py-3 my-0.5 text-xs font-semibold border-b last:border-b-0 last:pb-8 border-gray-200 cursor-pointer'
             onClick={() => handleSizeSelect(size)}
           >
             {size}

@@ -1,12 +1,8 @@
 'use client';
 
+import {useEffect, useRef} from 'react';
 import Image from 'next/image';
-import {ArrowLeft, ArrowRight} from 'lucide-react';
-import {Swiper, SwiperSlide} from 'swiper/react';
-import {Navigation} from 'swiper/modules';
-
-import 'swiper/css';
-import 'swiper/css/navigation';
+import {ChevronLeft, ChevronRight} from 'lucide-react';
 import {twMerge} from 'tailwind-merge';
 
 type MobileImageSwiperProps = {
@@ -26,11 +22,44 @@ export default function MobileImageSwiper({
   onSlideChange,
   className,
 }: MobileImageSwiperProps) {
-  const prevButtonClass = 'mobile-image-prev';
-  const nextButtonClass = 'mobile-image-next';
+  const containerRef = useRef<HTMLDivElement>(null);
+  const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const isBeginning = activeIndex === 0;
   const isEnd = activeIndex === images.length - 1;
+
+  // Jump to the initial slide once on mount (no animation)
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || initialSlide === 0) return;
+    container.scrollLeft = initialSlide * container.clientWidth;
+  }, [initialSlide]);
+
+  // Report the centered slide as the user scrolls
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            onSlideChange(Number(entry.target.getAttribute('data-index')));
+          }
+        }
+      },
+      {root: container, threshold: 0.6}
+    );
+
+    slideRefs.current.forEach((slide) => slide && observer.observe(slide));
+    return () => observer.disconnect();
+  }, [images.length, onSlideChange]);
+
+  const scrollByDir = (dir: -1 | 1) => {
+    const container = containerRef.current;
+    if (!container) return;
+    container.scrollBy({left: dir * container.clientWidth, behavior: 'smooth'});
+  };
 
   if (!images || images.length === 0) {
     return (
@@ -47,62 +76,75 @@ export default function MobileImageSwiper({
 
   return (
     <div className={twMerge('relative', className)}>
-      {' '}
-      {/* Wrapper div */}
-      <Swiper
-        modules={[Navigation]}
-        slidesPerView={1}
-        navigation={{
-          prevEl: `.${prevButtonClass}`,
-          nextEl: `.${nextButtonClass}`,
-        }}
-        onSlideChange={(swiper) => onSlideChange(swiper.activeIndex)}
-        className='aspect-7/9 w-full h-full relative'
-        initialSlide={initialSlide}
+      {/* Native scroll-snap track */}
+      <div
+        tabIndex={-1}
+        ref={containerRef}
+        className='flex aspect-7/9 w-full outline-none touch-pan-x touch-pan-y snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain [-webkit-overflow-scrolling:touch] scrollbar-hide'
       >
         {images.map((imgSrc, idx) => (
-          <SwiperSlide key={idx}>
+          <div
+            key={idx}
+            ref={(el) => {
+              slideRefs.current[idx] = el;
+            }}
+            data-index={idx}
+            className='relative h-full w-full shrink-0 snap-start snap-always'
+          >
             <Image
               src={imgSrc}
-              alt={`${productName} - bild ${idx + 1}`}
+              alt={`${productName} - image ${idx + 1}`}
               fill
-              quality={100}
+              quality={80}
               sizes='(max-width: 1023px) 100vw, 0px'
               priority={idx === 0}
               fetchPriority={idx === 0 ? 'high' : 'auto'}
-              loading='eager'
-              className='object-cover w-full h-full'
+              className='object-cover '
             />
-          </SwiperSlide>
+          </div>
         ))}
-      </Swiper>
-      {/* Navigationsknappar (outside Swiper, controlled by Swiper's navigation prop) */}
+      </div>
+
+      {/* Navigation buttons */}
       {images.length > 1 && (
         <>
           <button
+            onClick={() => scrollByDir(-1)}
+            disabled={isBeginning}
             className={twMerge(
-              `${prevButtonClass} absolute p-3 right-8 bottom-0 text-gray-700  cursor-pointer z-10`,
-              isBeginning ? 'opacity-50 pointer-events-none' : 'opacity-100'
+              'hidden pointer-fine:flex absolute left-0 top-1/2 -translate-y-1/2 pr-4 py-4 pl-2 cursor-pointer z-10 overlay-focus-ring',
+              isBeginning ? 'opacity-30 pointer-events-none' : 'opacity-100'
             )}
             aria-label='Previous image'
           >
-            <ArrowLeft size={14} strokeWidth={1.25} />
+            <ChevronLeft
+              size={24}
+              strokeWidth={1.25}
+              className='overlay-chevron'
+            />
           </button>
           <button
+            onClick={() => scrollByDir(1)}
+            disabled={isEnd}
             className={twMerge(
-              `${nextButtonClass} absolute right-1 bottom-0 text-gray-700 p-3  cursor-pointer  z-10`,
-              isEnd ? 'opacity-50 pointer-events-none' : 'opacity-100'
+              'hidden pointer-fine:flex absolute right-0 top-1/2 -translate-y-1/2 pl-4 py-4 pr-2 cursor-pointer z-10 overlay-focus-ring',
+              isEnd ? 'opacity-30 pointer-events-none' : 'opacity-100'
             )}
             aria-label='Next image'
           >
-            <ArrowRight size={14} strokeWidth={1.25} />
+            <ChevronRight
+              size={24}
+              strokeWidth={1.25}
+              className='overlay-chevron'
+            />
           </button>
         </>
       )}
-      {/* Pagination Text Indicator */}
+
+      {/* Pagination text indicator */}
       {images.length > 1 && (
         <div className='absolute bottom-2 left-2 justify-center mt-4 flex gap-2 z-10'>
-          <span className='text-[11px] font-medium text-gray-500  px-1 '>
+          <span className='text-[11px] font-medium text-gray-500 px-1'>
             {activeIndex + 1} / {images.length}
           </span>
         </div>
